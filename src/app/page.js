@@ -14,7 +14,7 @@ const LoginScreen = ({ onLogin }) => {
             onLogin(result.user);
         } catch (error) {
             console.error("Login failed:", error);
-            alert("Login failed. Please check your Firebase configuration.");
+            alert("Login failed: " + error.message);
         }
     };
     
