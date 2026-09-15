@@ -406,7 +406,8 @@ const Dashboard = ({ selectedSubjects, completedTopics, openTimer, dailyStreak }
 };
 
 
-const PastPapersView = ({ rootFolderId }) => {
+const PastPapersView = ({ rootFolderId, selectedSubjects }) => {
+    const activeSubjectNames = [...compulsorySubjects, ...optionalSubjects].filter(s => selectedSubjects.includes(s.id)).map(s => s.name.toLowerCase().trim());
     const [currentFolderId, setCurrentFolderId] = useState(rootFolderId);
     const [folderHistory, setFolderHistory] = useState([{ id: rootFolderId, name: 'Root' }]);
     const [files, setFiles] = useState([]);
@@ -470,15 +471,31 @@ const PastPapersView = ({ rootFolderId }) => {
                             <div className="p-8 text-center text-slate-500"><p>This folder is empty.</p></div>
                         ) : (
                             files.map(f => {
-                                const isFolder = f.mimeType === 'application/vnd.google-apps.folder';
-                                const isPdf = f.mimeType === 'application/pdf';
-                                return (
-                                    <div key={f.id} onClick={() => { if (isFolder) handleFolderClick(f); else if (isPdf) setSelectedFile(f); }} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${selectedFile?.id === f.id ? 'bg-primary/10 text-primary font-semibold' : 'hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>
-                                        <i className={`fa-solid ${isFolder ? 'fa-folder text-yellow-500' : isPdf ? 'fa-file-pdf text-red-500' : 'fa-file text-slate-400'} text-lg`}></i>
-                                        <span className="truncate text-sm">{f.name}</span>
-                                    </div>
-                                );
-                            })
+            const isFolder = f.mimeType === 'application/vnd.google-apps.folder';
+            const isPdf = f.mimeType === 'application/pdf';
+            const isRoot = currentFolderId === rootFolderId;
+            let allowed = true;
+            if (isRoot && isFolder) {
+                // Check if folder name is in selected subjects
+                allowed = activeSubjectNames.includes(f.name.toLowerCase().trim());
+            }
+
+            if (!allowed) {
+                return (
+                    <div key={f.id} className="flex items-center gap-3 p-3 rounded-xl transition-colors bg-red-50 dark:bg-red-900/10 text-red-300 dark:text-red-800 cursor-not-allowed opacity-50 select-none">
+                        <i className="fa-solid fa-folder text-red-300"></i>
+                        <span className="truncate text-sm line-through">{f.name}</span>
+                    </div>
+                );
+            }
+
+            return (
+                <div key={f.id} onClick={() => { if (isFolder) handleFolderClick(f); else if (isPdf) setSelectedFile(f); }} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${selectedFile?.id === f.id ? 'bg-primary/10 text-primary font-semibold' : 'hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>
+                    <i className={`fa-solid ${isFolder ? 'fa-folder text-yellow-500' : isPdf ? 'fa-file-pdf text-red-500' : 'fa-file text-slate-400'} text-lg`}></i>
+                    <span className="truncate text-sm">{f.name}</span>
+                </div>
+            );
+        })
                         )}
                     </div>
                 </div>
@@ -917,7 +934,7 @@ export default function App() {
                 {currentView === 'dashboard' && <Dashboard selectedSubjects={selectedSubjects} completedTopics={completedTopics} openTimer={() => setTimerOpen(true)} dailyStreak={dailyStreak} />}
                 {currentView === 'syllabus' && <SyllabusTracker selectedSubjects={selectedSubjects} completedTopics={completedTopics} setCompletedTopics={setCompletedTopics} />}
                 {currentView === 'timetable' && <Timetable startTaskTimer={(task, mins) => { setTimerSettings({ active: true, time: mins * 60, task }); setTimerOpen(true); }} />}
-                {currentView === 'pastpapers' && <PastPapersView rootFolderId='1loejZdweyTir2QqtUKiHAAFOs5bRxfmz' />}
+                {currentView === 'pastpapers' && <PastPapersView rootFolderId='1loejZdweyTir2QqtUKiHAAFOs5bRxfmz' selectedSubjects={selectedSubjects} />}
                 {currentView === 'factbook' && <FactBook facts={facts} setFacts={setFacts} />}
                 {currentView === 'currentaffairs' && <TemplateView title="Current Affairs Hot Topics" description="Deep-dive analysis on national security, regional dynamics, and global treaties." icon="fa-globe" />}
                 {currentView === 'mcqs' && <TemplateView title="Subject-Wise Practice MCQs" description="Test your preparation with comprehensive multiple-choice question sets." icon="fa-list-check" />}
