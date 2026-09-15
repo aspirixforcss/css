@@ -328,7 +328,7 @@ const CountdownTimerModal = ({ isOpen, onClose }) => {
     );
 };
 
-const Dashboard = ({ selectedSubjects, completedTopics, openTimer }) => {
+const Dashboard = ({ selectedSubjects, completedTopics, openTimer, dailyStreak }) => {
     const calculateProgress = (subjectList) => {
         let total = 0; let done = 0;
         subjectList.forEach(sub => {
@@ -381,13 +381,12 @@ const Dashboard = ({ selectedSubjects, completedTopics, openTimer }) => {
                 </div>
                 <div className="bg-gradient-to-br from-emerald-500 to-green-700 p-6 rounded-3xl text-white flex flex-col justify-center">
                     <h3 className="font-bold mb-1 text-green-100">Daily Streak</h3>
-                    <div className="text-4xl font-black flex items-center gap-2">14 Days <i className="fa-solid fa-fire text-yellow-300"></i></div>
+                    <div className="text-4xl font-black flex items-center gap-2">{dailyStreak} Days <i className="fa-solid fa-fire text-yellow-300"></i></div>
                 </div>
             </div>
         </div>
     );
 };
-
 
 
 const PastPapersView = ({ rootFolderId }) => {
@@ -654,16 +653,13 @@ const Timetable = ({ startTaskTimer }) => {
             setActiveDay(days.length > 1 ? days.find(d => d !== dayToRemove) : '');
         }
     };
-    const removeTask = (id) => {
-        setSchedule(schedule.filter(s => s.id !== id));
-    };
-    const daySchedule = schedule.filter(s => s.day === activeDay).sort((a,b) => a.startTime.localeCompare(b.startTime));
     const calculateMinutes = (start, end) => {
         const [sh, sm] = start.split(':').map(Number);
         const [eh, em] = end.split(':').map(Number);
         let mins = (eh * 60 + em) - (sh * 60 + sm);
         return mins > 0 ? mins : 60;
     };
+    const daySchedule = schedule.filter(s => s.day === activeDay).sort((a,b) => a.startTime.localeCompare(b.startTime));
     return (
         <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in pb-32 w-full">
             <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">Study Timetable</h2>
@@ -683,80 +679,71 @@ const Timetable = ({ startTaskTimer }) => {
                             ))}
                         </div>
                         <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex gap-2">
-                            <input type="text" value={newDayName} onChange={e => setNewDayName(e.target.value)} placeholder="New day..." className="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-sm px-3 py-2 outline-none" />
-                            <button onClick={handleAddDay} className="bg-slate-800 dark:bg-slate-600 text-white w-9 h-9 rounded-xl flex items-center justify-center hover:bg-slate-700 transition-colors"><i className="fa-solid fa-plus"></i></button>
+                            <input type="text" placeholder="Add custom day..." value={newDayName} onChange={e => setNewDayName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddDay()} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-primary outline-none" />
+                            <button onClick={handleAddDay} className="bg-slate-800 dark:bg-slate-700 text-white w-10 h-10 rounded-xl shrink-0 flex items-center justify-center hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors"><i className="fa-solid fa-plus"></i></button>
                         </div>
                     </div>
                 </div>
-                <div className="flex-1 w-full space-y-6">
-                    <div className="bg-white dark:bg-surfaceDark p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                        <h3 className="font-bold text-xl text-slate-800 dark:text-white mb-6 flex items-center gap-3">
-                            <i className="fa-solid fa-calendar-day text-primary"></i> {activeDay} Schedule
-                        </h3>
-                        <div className="space-y-3 mb-8">
-                            {daySchedule.length === 0 ? (
-                                <div className="text-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl text-slate-500">
-                                    No tasks scheduled for {activeDay}.
-                                </div>
-                            ) : (
-                                daySchedule.map(task => {
-                                    const mins = calculateMinutes(task.startTime, task.endTime);
-                                    return (
-                                        <div key={task.id} className="group flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary/30 hover:shadow-md transition-all bg-white dark:bg-surfaceDark relative">
-                                            <div className="w-full sm:w-32 flex-shrink-0 text-center sm:text-left bg-slate-50 dark:bg-slate-800 p-2 sm:bg-transparent sm:p-0 rounded-lg">
-                                                <div className="font-bold text-slate-700 dark:text-slate-300">{task.startTime}</div>
-                                                <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">to {task.endTime}</div>
+                <div className="flex-1 w-full bg-white dark:bg-surfaceDark p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-700 min-h-[500px] shadow-sm">
+                    {activeDay ? (
+                        <>
+                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100 dark:border-slate-700">
+                                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{activeDay}'s Schedule</h3>
+                                <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-bold">{daySchedule.length} Tasks</span>
+                            </div>
+                            <div className="space-y-4 mb-8">
+                                {daySchedule.length === 0 ? (
+                                    <div className="text-center py-12 text-slate-400">
+                                        <i className="fa-regular fa-calendar-check text-4xl mb-3 text-slate-300 dark:text-slate-600"></i>
+                                        <p>No tasks scheduled for {activeDay}.</p>
+                                    </div>
+                                ) : (
+                                    daySchedule.map(item => (
+                                        <div key={item.id} className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary/30 rounded-2xl transition-all shadow-sm hover:shadow-md">
+                                            <div className="flex items-start sm:items-center gap-4">
+                                                <div className="bg-primary/10 text-primary font-bold px-3 py-1.5 rounded-lg text-sm shrink-0 whitespace-nowrap">
+                                                    {item.startTime} - {item.endTime}
+                                                </div>
+                                                <div className="font-semibold text-slate-700 dark:text-slate-200 mt-1 sm:mt-0">{item.task}</div>
                                             </div>
-                                            <div className="w-1 h-12 bg-slate-200 dark:bg-slate-700 rounded-full hidden sm:block group-hover:bg-primary/50 transition-colors"></div>
-                                            <div className="flex-1 flex justify-between items-center">
-                                                <div>
-                                                    <h4 className="font-bold text-lg text-slate-800 dark:text-white">{task.task}</h4>
-                                                    <div className="flex gap-2 mt-1">
-                                                        <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-1 rounded-md">{mins} mins</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => startTaskTimer(task.task, mins)} className="w-10 h-10 rounded-full bg-green-100 text-green-600 hover:bg-green-200 flex items-center justify-center transition-colors" title="Start Timer">
-                                                        <i className="fa-solid fa-play"></i>
-                                                    </button>
-                                                    <button onClick={() => removeTask(task.id)} className="w-10 h-10 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center transition-colors" title="Remove Task">
-                                                        <i className="fa-solid fa-trash"></i>
-                                                    </button>
-                                                </div>
+                                            <div className="flex gap-2 mt-3 sm:mt-0 sm:opacity-0 group-hover:opacity-100 self-end sm:self-auto">
+                                                <button onClick={() => startTaskTimer(item.task, calculateMinutes(item.startTime, item.endTime))} className="text-green-500 hover:text-green-600 transition-all p-2 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
+                                                    <i className="fa-solid fa-play"></i>
+                                                </button>
+                                                <button onClick={() => setSchedule(schedule.filter(s => s.id !== item.id))} className="text-slate-400 hover:text-red-500 transition-all p-2 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
+                                                    <i className="fa-solid fa-trash"></i>
+                                                </button>
                                             </div>
                                         </div>
-                                    );
-                                })
-                            )}
-                        </div>
-                        <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
-                            <h4 className="font-bold text-slate-700 dark:text-slate-300 mb-4 text-sm uppercase tracking-wider">Add New Task</h4>
-                            <div className="flex flex-col md:flex-row gap-4">
-                                <div className="flex gap-4 w-full md:w-auto">
-                                    <div className="flex-1 md:w-32">
-                                        <label className="block text-xs font-semibold text-slate-500 mb-1">Start Time</label>
-                                        <input type="time" value={editForm.startTime} onChange={e => setEditForm({...editForm, startTime: e.target.value})} className="w-full bg-white dark:bg-surfaceDark border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 outline-none focus:border-primary transition-colors" />
-                                    </div>
-                                    <div className="flex-1 md:w-32">
-                                        <label className="block text-xs font-semibold text-slate-500 mb-1">End Time</label>
-                                        <input type="time" value={editForm.endTime} onChange={e => setEditForm({...editForm, endTime: e.target.value})} className="w-full bg-white dark:bg-surfaceDark border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 outline-none focus:border-primary transition-colors" />
-                                    </div>
-                                </div>
-                                <div className="flex-1">
-                                    <label className="block text-xs font-semibold text-slate-500 mb-1">Task Description</label>
+                                    ))
+                                )}
+                            </div>
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                <h4 className="font-bold text-slate-700 dark:text-slate-300 mb-3 text-sm flex items-center gap-2"><i className="fa-solid fa-clock text-primary"></i> Add New Task to {activeDay}</h4>
+                                <div className="flex flex-col sm:flex-row gap-3">
                                     <div className="flex gap-2">
-                                        <input type="text" value={editForm.task} onChange={e => setEditForm({...editForm, task: e.target.value})} onKeyDown={e => e.key === 'Enter' && handleAddTask()} placeholder="e.g., Read Dawn editorial..." className="flex-1 bg-white dark:bg-surfaceDark border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2 outline-none focus:border-primary transition-colors" />
-                                        <button onClick={handleAddTask} className="bg-primary text-white px-6 rounded-xl font-bold hover:bg-primary/90 transition-colors shadow-md">Add</button>
+                                        <input title="Start Time" type="time" value={editForm.startTime} onChange={e => setEditForm({...editForm, startTime: e.target.value})} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 w-32 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                                        <input title="End Time" type="time" value={editForm.endTime} onChange={e => setEditForm({...editForm, endTime: e.target.value})} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 w-32 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                                    </div>
+                                    <div className="flex-1 flex gap-2">
+                                        <input type="text" placeholder="What will you study?" value={editForm.task} onChange={e => setEditForm({...editForm, task: e.target.value})} onKeyDown={e => e.key === 'Enter' && handleAddTask()} className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                                        <button onClick={handleAddTask} className="bg-primary hover:bg-primaryDark text-white px-6 py-2.5 rounded-xl font-bold shadow-sm transition-colors whitespace-nowrap">Add Task</button>
                                     </div>
                                 </div>
                             </div>
+                        </>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                            <i className="fa-solid fa-calendar-day text-5xl mb-4 text-slate-300 dark:text-slate-600"></i>
+                            <p>Select or create a day from the sidebar to view its schedule.</p>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>
     );
 };
+
 
 const FactBook = ({ facts, setFacts }) => {
     const [newFactTitle, setNewFactTitle] = useState('');
@@ -842,6 +829,7 @@ export default function App() {
     const [completedTopics, setCompletedTopics] = useState({});
     const [facts, setFacts] = useState([]);
     const [timerSettings, setTimerSettings] = useState({ active: false, time: 25 * 60, task: '' });
+    const [dailyStreak, setDailyStreak] = useState(0);
 
     useEffect(() => {
         const savedTopics = localStorage.getItem('completedTopics');
@@ -862,6 +850,37 @@ export default function App() {
         }
     }, [facts]);
 
+    useEffect(() => {
+        const lastVisitDate = localStorage.getItem('lastVisitDate');
+        const today = new Date().toDateString();
+        let currentStreak = parseInt(localStorage.getItem('dailyStreak') || '0', 10);
+
+        if (lastVisitDate !== today) {
+            if (lastVisitDate) {
+                const lastDate = new Date(lastVisitDate);
+                const todayDate = new Date();
+                todayDate.setHours(0,0,0,0);
+                lastDate.setHours(0,0,0,0);
+                const diffTime = Math.abs(todayDate - lastDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 1) {
+                    currentStreak += 1;
+                } else if (diffDays > 1) {
+                    currentStreak = 1;
+                }
+            } else {
+                currentStreak = 1;
+            }
+
+            localStorage.setItem('lastVisitDate', today);
+            localStorage.setItem('dailyStreak', currentStreak.toString());
+            setDailyStreak(currentStreak);
+        } else {
+            setDailyStreak(currentStreak || 1);
+        }
+    }, []);
+
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
         if (typeof document !== 'undefined') {
@@ -876,7 +895,7 @@ export default function App() {
         <div className="flex h-screen w-full bg-bgLight dark:bg-bgDark font-sans overflow-hidden transition-colors">
             <Sidebar currentView={currentView} setCurrentView={setCurrentView} isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
             <main className="flex-1 h-full flex flex-col relative w-full overflow-y-auto">
-                {currentView === 'dashboard' && <Dashboard selectedSubjects={selectedSubjects} completedTopics={completedTopics} openTimer={() => setTimerOpen(true)} />}
+                {currentView === 'dashboard' && <Dashboard selectedSubjects={selectedSubjects} completedTopics={completedTopics} openTimer={() => setTimerOpen(true)} dailyStreak={dailyStreak} />}
                 {currentView === 'syllabus' && <SyllabusTracker selectedSubjects={selectedSubjects} completedTopics={completedTopics} setCompletedTopics={setCompletedTopics} />}
                 {currentView === 'timetable' && <Timetable startTaskTimer={(task, mins) => setTimerSettings({ active: true, time: mins * 60, task })} />}
                 {currentView === 'pastpapers' && <PastPapersView folderId='1loejZdweyTir2QqtUKiHAAFOs5bRxfmz' />}
