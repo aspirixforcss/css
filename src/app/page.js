@@ -291,8 +291,9 @@ const Sidebar = ({ currentView, setCurrentView, isDarkMode, toggleTheme }) => {
     );
 };
 
-const CountdownTimerModal = ({ isOpen, onClose }) => {
+const CountdownTimerModal = ({ isOpen, onClose, settings }) => {
     const [minutes, setMinutes] = useState(25);
+    const [taskName, setTaskName] = useState("");
     const [timeLeft, setTimeLeft] = useState(25 * 60);
     const [isActive, setIsActive] = useState(false);
 
@@ -915,15 +916,15 @@ export default function App() {
             <main className="flex-1 h-full flex flex-col relative w-full overflow-y-auto">
                 {currentView === 'dashboard' && <Dashboard selectedSubjects={selectedSubjects} completedTopics={completedTopics} openTimer={() => setTimerOpen(true)} dailyStreak={dailyStreak} />}
                 {currentView === 'syllabus' && <SyllabusTracker selectedSubjects={selectedSubjects} completedTopics={completedTopics} setCompletedTopics={setCompletedTopics} />}
-                {currentView === 'timetable' && <Timetable startTaskTimer={(task, mins) => setTimerSettings({ active: true, time: mins * 60, task })} />}
-                {currentView === 'pastpapers' && <PastPapersView folderId='1loejZdweyTir2QqtUKiHAAFOs5bRxfmz' />}
+                {currentView === 'timetable' && <Timetable startTaskTimer={(task, mins) => { setTimerSettings({ active: true, time: mins * 60, task }); setTimerOpen(true); }} />}
+                {currentView === 'pastpapers' && <PastPapersView rootFolderId='1loejZdweyTir2QqtUKiHAAFOs5bRxfmz' />}
                 {currentView === 'factbook' && <FactBook facts={facts} setFacts={setFacts} />}
                 {currentView === 'currentaffairs' && <TemplateView title="Current Affairs Hot Topics" description="Deep-dive analysis on national security, regional dynamics, and global treaties." icon="fa-globe" />}
                 {currentView === 'mcqs' && <TemplateView title="Subject-Wise Practice MCQs" description="Test your preparation with comprehensive multiple-choice question sets." icon="fa-list-check" />}
                 {currentView === 'vocab' && <TemplateView title="English Vocabulary & Idioms MCQs" description="High-frequency GRE/CSS vocabulary builder with interactive quizzes." icon="fa-spell-check" />}
                 {currentView === 'flashcards' && <TemplateView title="Active Recall Flash Cards" description="Flip-card revision system for rapid memory retention." icon="fa-clone" />}
             </main>
-            <CountdownTimerModal isOpen={timerOpen} onClose={() => setTimerOpen(false)} />
+            <CountdownTimerModal isOpen={timerOpen} onClose={() => setTimerOpen(false)} settings={timerSettings} />
         </div>
     );
 }
