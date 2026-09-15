@@ -408,6 +408,9 @@ const Dashboard = ({ selectedSubjects, completedTopics, openTimer, dailyStreak }
 
 const PastPapersView = ({ rootFolderId, selectedSubjects }) => {
     const activeSubjectNames = [...compulsorySubjects, ...optionalSubjects].filter(s => selectedSubjects.includes(s.id)).map(s => s.name.toLowerCase().trim());
+    const allSubjectNames = [...compulsorySubjects, ...optionalSubjects].map(s => s.name.toLowerCase().trim());
+    const selectedGroups = optionalSubjects.filter(s => selectedSubjects.includes(s.id)).map(s => s.group);
+
     const [currentFolderId, setCurrentFolderId] = useState(rootFolderId);
     const [folderHistory, setFolderHistory] = useState([{ id: rootFolderId, name: 'Root' }]);
     const [files, setFiles] = useState([]);
@@ -442,7 +445,7 @@ const PastPapersView = ({ rootFolderId, selectedSubjects }) => {
         setSelectedFile(null);
     };
     return (
-        <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in pb-32 w-full h-[85vh] flex flex-col">
+        <div className="max-w-7xl mx-auto p-2 md:p-4 animate-fade-in pb-20 w-full h-[92vh] flex flex-col">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div>
                     <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">Past Papers Repository</h2>
@@ -453,7 +456,7 @@ const PastPapersView = ({ rootFolderId, selectedSubjects }) => {
                 </button>
             </div>
             <div className="flex-1 bg-white dark:bg-surfaceDark rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm flex flex-col md:flex-row">
-                <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 flex flex-col bg-slate-50 dark:bg-slate-800/30">
+                <div className="w-full md:w-1/4 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 flex flex-col bg-slate-50 dark:bg-slate-800/30">
                     <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-surfaceDark flex items-center gap-2 overflow-x-auto whitespace-nowrap">
                         {folderHistory.map((fh, idx) => (
                             <div key={fh.id + '_' + idx} className="flex items-center">
@@ -473,11 +476,19 @@ const PastPapersView = ({ rootFolderId, selectedSubjects }) => {
                             files.map(f => {
             const isFolder = f.mimeType === 'application/vnd.google-apps.folder';
             const isPdf = f.mimeType === 'application/pdf';
-            const isRoot = currentFolderId === rootFolderId;
             let allowed = true;
-            if (isRoot && isFolder) {
-                // Check if folder name is in selected subjects
-                allowed = activeSubjectNames.includes(f.name.toLowerCase().trim());
+            
+            if (isFolder) {
+                const folderName = f.name.toLowerCase().trim();
+                const groupMatch = folderName.match(/group\s*(\d+)/i);
+                
+                if (groupMatch) {
+                    const groupNum = parseInt(groupMatch[1], 10);
+                    allowed = selectedGroups.includes(groupNum);
+                } else if (allSubjectNames.includes(folderName)) {
+                    allowed = activeSubjectNames.includes(folderName);
+                }
+                // "Compulsory" and "Optional" are inherently allowed if they don't match group/subject directly
             }
 
             if (!allowed) {
@@ -499,7 +510,7 @@ const PastPapersView = ({ rootFolderId, selectedSubjects }) => {
                         )}
                     </div>
                 </div>
-                <div className="w-full md:w-2/3 bg-slate-100 dark:bg-slate-900 relative h-96 md:h-auto">
+                <div className="w-full md:w-3/4 bg-slate-100 dark:bg-slate-900 relative h-[70vh] md:h-auto">
                     {selectedFile ? (
                         <iframe src={`https://drive.google.com/file/d/${selectedFile.id}/preview`} className="w-full h-full border-0" allow="autoplay"></iframe>
                     ) : (
@@ -925,7 +936,19 @@ export default function App() {
     };
 
     if (appState === 'login') return <LoginScreen onLogin={() => setAppState('onboarding')} />;
-    if (appState === 'onboarding') return <OnboardingWizard onComplete={(s) => { setSelectedSubjects(s); setAppState('main'); }} />;
+    if (appState === 'onboarding') return <OnboardingWizard onComplete={async (s) => { 
+        setSelectedSubjects(s); 
+        setAppState('main');
+        if (user) {
+            try {
+                const docRef = doc(db, 'users', user.uid);
+                await setDoc(docRef, { selectedSubjects: s, lastUpdate: new Date() }, { merge: true });
+                console.log("Subjects force saved!");
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }} />;
 
     return (
         <div className="flex h-screen w-full bg-bgLight dark:bg-bgDark font-sans overflow-hidden transition-colors">
