@@ -1,0 +1,1004 @@
+{
+  "comp_essay": [
+    {
+      "title": "Candidates will be required to write one or more Essay in English.",
+      "subtopics": []
+    },
+    {
+      "title": "A wide choice of topics will be given.",
+      "subtopics": []
+    },
+    {
+      "title": "Candidates are expected to reflect comprehensive and research based knowledge on a selected topic.",
+      "subtopics": []
+    },
+    {
+      "title": "Candidate’s articulation, expression and technical treatment of the style of English Essay writing will be examined.",
+      "subtopics": []
+    }
+  ],
+  "comp_precis": [
+    {
+      "title": "The examination in this subject will be based upon a paper carrying 100 marks to Test the candidate’s abilities to handle Precis Writing, Reading Comprehension, Sentence Structuring, Translation, Grammar and Vocabulary, etc",
+      "subtopics": [
+        "The examination in this subject will be based upon a paper carrying 100 marks to Test the candidate’s abilities to handle Precis Writing",
+        "Reading Comprehension",
+        "Sentence Structuring",
+        "Translation",
+        "Grammar and Vocabulary",
+        "etc"
+      ]
+    },
+    {
+      "title": "Reading Comprehension (20 marks) A carefully selected passage that is rich in substance but not very technical or discipline- specific shall be given, followed by five questions, each carrying 4 marks.",
+      "subtopics": []
+    },
+    {
+      "title": "Grammar and Vocabulary (20 marks) Correct usage of Tense, Articles, Prepositions, Conjunctions, Punctuation, Phrasal Verbs, Synonyms and Antonyms etc.",
+      "subtopics": []
+    },
+    {
+      "title": "Sentence Correction (10 marks) The sentences shall be given each having a clear structural flaw in terms of grammar or punctuation. The candidates shall be asked to rewrite them with really needed correction only, without making unnecessary alterations. No two or more sentences should have exactly the same problem, and 2-3 sentences shall be based on correction of punctuation marks.",
+      "subtopics": []
+    },
+    {
+      "title": "Grouping of Words (10 marks) A random list of twenty words of moderate standard (neither very easy nor utterly unfamiliar) shall be given, to be grouped by the candidates in pairs of those having similar or opposite meaning, as may be clearly directed in the question.",
+      "subtopics": []
+    },
+    {
+      "title": "Pairs of Words (10 marks) Ten pairs shall be given of seemingly similar words with different meanings, generally confused in communication, for bringing out the difference in meaning of any five of them by first explaining them in parenthesis and then using them in sentences.",
+      "subtopics": []
+    },
+    {
+      "title": "Translation (10 marks) Ten short Urdu sentences involving structural composition, significant terms and figurative/idiomatic expressions shall be given, to be accurately translated into English.",
+      "subtopics": []
+    }
+  ],
+  "comp_gsa": [
+    {
+      "title": "Physical Sciences",
+      "subtopics": []
+    },
+    {
+      "title": "Constituents and Structure",
+      "subtopics": [
+        "Universe",
+        "Galaxy",
+        "Light Year",
+        "Solar System",
+        "Sun",
+        "Earth",
+        "Astronomical System of Units"
+      ]
+    },
+    {
+      "title": "Process of Nature",
+      "subtopics": [
+        "Solar and Lunar Eclipses",
+        "Rotation and Revolution",
+        "Weather Variables (Global Temperature",
+        "Pressure",
+        "Circulation",
+        "Precipitation",
+        "Humidity) and Weather Variations"
+      ]
+    },
+    {
+      "title": "Natural Hazards and Disasters",
+      "subtopics": [
+        "Earth Quake",
+        "Volcanic Eruption",
+        "Tsunami",
+        "Floods",
+        "Avalanche",
+        "Travelling Cyclone (Tropical Cyclone",
+        "Middle Latitude Cyclone and Tornadoes)",
+        "Drought",
+        "Wildfire",
+        "Urban Fire. Disaster Risk Management"
+      ]
+    },
+    {
+      "title": "Energy Resources",
+      "subtopics": [
+        "Sources of Energy (Renewable i.e. LED Energy",
+        "Solar Energy",
+        "Wind Energy and Non-Renewable Energy conservation and its sustainable use"
+      ]
+    },
+    {
+      "title": "Atomic Structure, Chemical Bonding, Electromagnetic Radiations",
+      "subtopics": [
+        "Atomic Structure",
+        "Chemical Bonding",
+        "Electromagnetic Radiations"
+      ]
+    },
+    {
+      "title": "Modern Materials/Chemicals",
+      "subtopics": [
+        "Ceramics",
+        "Plastics",
+        "Semiconductors. Antibiotics",
+        "Vaccines",
+        "Fertilizers",
+        "Pesticides"
+      ]
+    },
+    {
+      "title": "Biological Sciences",
+      "subtopics": []
+    },
+    {
+      "title": "The Basis of Life",
+      "subtopics": []
+    },
+    {
+      "title": "Biomolecules",
+      "subtopics": [
+        "Proteins",
+        "Lipids",
+        "Carbohydrates and Enzymes"
+      ]
+    },
+    {
+      "title": "Plant and Animal Kingdom",
+      "subtopics": []
+    },
+    {
+      "title": "A Brief Account of Human Physiology",
+      "subtopics": []
+    },
+    {
+      "title": "Common Diseases and Epidemics",
+      "subtopics": [
+        "Polio",
+        "Diarrhea",
+        "Malaria",
+        "Hepatitis",
+        "Dengue their Causes and Prevention"
+      ]
+    },
+    {
+      "title": "New Model Concept of Producing BIO Fuel Method",
+      "subtopics": []
+    },
+    {
+      "title": "Environmental Science",
+      "subtopics": []
+    },
+    {
+      "title": "Environment",
+      "subtopics": [
+        "The Atmosphere (Layered Structure and Composition)",
+        "Hydrosphere (Water Cycle",
+        "Major Water Compartments)",
+        "Biosphere (Major Biomes) and Lithosphere (Minerals and Rocks",
+        "Rock Types",
+        "Plate Tectonics)"
+      ]
+    },
+    {
+      "title": "Atmospheric Pollution",
+      "subtopics": []
+    },
+    {
+      "title": "Water Pollution",
+      "subtopics": []
+    },
+    {
+      "title": "Land Pollution",
+      "subtopics": []
+    },
+    {
+      "title": "Role of Remote Sensing and GIS in Environmental Science",
+      "subtopics": []
+    },
+    {
+      "title": "Population Planning",
+      "subtopics": []
+    },
+    {
+      "title": "Food Science",
+      "subtopics": []
+    },
+    {
+      "title": "Concept of Balance Diet",
+      "subtopics": [
+        "Vitamins",
+        "Carbohydrates",
+        "Protein",
+        "Fats and oil",
+        "Minerals",
+        "Fiber"
+      ]
+    },
+    {
+      "title": "Quality of Food",
+      "subtopics": [
+        "Bioavailability of Nutrients",
+        "Appearance",
+        "Texture",
+        "Flavor",
+        "Quality of Packed and Frozen Food",
+        "Food Additives",
+        "Preservatives and Antioxidants"
+      ]
+    },
+    {
+      "title": "Food Deterioration and its Control",
+      "subtopics": [
+        "Causes of Food Deterioration",
+        "Adulteration",
+        "Food Preservation"
+      ]
+    },
+    {
+      "title": "Information Technology",
+      "subtopics": []
+    },
+    {
+      "title": "Computer (Hardware & Software Fundamentals)",
+      "subtopics": []
+    },
+    {
+      "title": "I/O Processing and data storage, Networking & Internet Standards, Application and business Software, Social Media Websites. Information Systems. Fundamentals of artificial intelligence",
+      "subtopics": [
+        "I/O Processing and data storage",
+        "Networking & Internet Standards",
+        "Application and business Software",
+        "Social Media Websites. Information Systems. Fundamentals of artificial intelligence"
+      ]
+    },
+    {
+      "title": "Telecommunications",
+      "subtopics": [
+        "Basics of Wireless Communication (Mobile",
+        "Satellite"
+      ]
+    },
+    {
+      "title": "Quantitative Ability/Reasoning",
+      "subtopics": []
+    },
+    {
+      "title": "Basic Mathematical Skills",
+      "subtopics": []
+    },
+    {
+      "title": "Concepts and ability to reasons quantitatively and solve problems in a quantitative setting",
+      "subtopics": []
+    },
+    {
+      "title": "Basic Arithmetic, Algebra and Geometry (Average, Ratios, Rates, Percentage, Angles, Triangles, Sets, Remainders, Equations, Symbols, Rounding of Numbers",
+      "subtopics": []
+    },
+    {
+      "title": "Random Sampling",
+      "subtopics": []
+    },
+    {
+      "title": "Logical Reasoning and Analytical Reasoning/Ability",
+      "subtopics": []
+    },
+    {
+      "title": "Logical Reasoning includes the process of using a rational, systematic series of steps based on sound mathematical procedures and given statements to arrive at a conclusion",
+      "subtopics": []
+    },
+    {
+      "title": "Analytical Reasoning/Ability includes visualizing, articulating and solving both complex and uncomplicated problems and concepts and making decisions that are sensible based on available information, including demonstration of the ability to apply logical thinking to gathering and analyzing information",
+      "subtopics": []
+    },
+    {
+      "title": "Mental Abilities",
+      "subtopics": []
+    },
+    {
+      "title": "Mental Abilities Scales that measures specific constructs such as verbal, mechanical, numerical and social ability",
+      "subtopics": [
+        "Mental Abilities Scales that measures specific constructs such as verbal",
+        "mechanical",
+        "numerical and social ability"
+      ]
+    }
+  ],
+  "comp_ca": [
+    {
+      "title": "Pakistan's Domestic Affairs (20 marks)",
+      "subtopics": []
+    },
+    {
+      "title": "Political",
+      "subtopics": []
+    },
+    {
+      "title": "Economic",
+      "subtopics": []
+    },
+    {
+      "title": "Social",
+      "subtopics": []
+    },
+    {
+      "title": "Pakistan's External Affairs (40 marks)",
+      "subtopics": []
+    },
+    {
+      "title": "Pakistan’s relations with its Neighbors (India, China, Afghanistan, Russia)",
+      "subtopics": [
+        "Pakistan’s relations with its Neighbors (India",
+        "China",
+        "Afghanistan",
+        "Russia)"
+      ]
+    },
+    {
+      "title": "Pakistan’s relations with the Muslim World (Iran, Saudi Arabia, Indonesia, Turkey)",
+      "subtopics": [
+        "Pakistan’s relations with the Muslim World (Iran",
+        "Saudi Arabia",
+        "Indonesia",
+        "Turkey)"
+      ]
+    },
+    {
+      "title": "Pakistan’s relations with the United States",
+      "subtopics": []
+    },
+    {
+      "title": "Pakistan’s relations with Regional and International Organizations (UN, SAARC, ECO, OIC, WTO, GCC)",
+      "subtopics": [
+        "Pakistan’s relations with Regional and International Organizations (UN",
+        "SAARC",
+        "ECO",
+        "OIC",
+        "WTO",
+        "GCC)"
+      ]
+    },
+    {
+      "title": "Global Issues (40 marks)",
+      "subtopics": []
+    },
+    {
+      "title": "International Security",
+      "subtopics": []
+    },
+    {
+      "title": "International Political Economy",
+      "subtopics": []
+    },
+    {
+      "title": "Human Rights",
+      "subtopics": []
+    },
+    {
+      "title": "Environment",
+      "subtopics": []
+    },
+    {
+      "title": "Global Warming, Kyoto Protocol, Copenhagen Accord",
+      "subtopics": [
+        "Global Warming",
+        "Kyoto Protocol",
+        "Copenhagen Accord"
+      ]
+    },
+    {
+      "title": "Population",
+      "subtopics": []
+    },
+    {
+      "title": "world population trends, world population policies",
+      "subtopics": [
+        "world population trends",
+        "world population policies"
+      ]
+    },
+    {
+      "title": "Terrorism and Counter Terrorism",
+      "subtopics": []
+    },
+    {
+      "title": "Global Energy Politics",
+      "subtopics": []
+    },
+    {
+      "title": "Nuclear Proliferation and Nuclear Security",
+      "subtopics": []
+    },
+    {
+      "title": "Nuclear Politics in South Asia",
+      "subtopics": []
+    },
+    {
+      "title": "International Trade (Doha Development Round and Bali Package)",
+      "subtopics": []
+    },
+    {
+      "title": "Cooperation and Competition in Arabian Sea, Indian and Pacific Oceans",
+      "subtopics": [
+        "Cooperation and Competition in Arabian Sea",
+        "Indian and Pacific Oceans"
+      ]
+    },
+    {
+      "title": "Millennium Development Goals, Current Status",
+      "subtopics": [
+        "Millennium Development Goals",
+        "Current Status"
+      ]
+    },
+    {
+      "title": "Globalization",
+      "subtopics": []
+    },
+    {
+      "title": "Middle East Crisis",
+      "subtopics": []
+    },
+    {
+      "title": "Kashmir Issue",
+      "subtopics": []
+    },
+    {
+      "title": "Palestine Issue",
+      "subtopics": []
+    }
+  ],
+  "comp_pa": [
+    {
+      "title": "Ideology of Pakistan",
+      "subtopics": []
+    },
+    {
+      "title": "definition and elucidation, historical aspects: Muslim rule in the Sub-Continent, its downfall and efforts for Renaissance. Movements for reforms-- Shaikh Ahmad Sarhindi, Shah Waliullah, Sayyid Ahmad Shaheed, Aligarh, Deoband, Nadwah, and other educational institutions-------Sindh Madrassah and Islamia College Peshawar. Ideology of Pakistan in the light of Speeches and statements of Allama Iqbal and Quaid- i Azam Muhammad Ali Jinnah",
+      "subtopics": [
+        "Muslim rule in the Sub-Continent",
+        "its downfall",
+        "efforts for Renaissance. Movements for reforms-- Shaikh Ahmad Sarhindi",
+        "Shah Waliullah",
+        "Sayyid Ahmad Shaheed",
+        "Aligarh",
+        "Deoband",
+        "Nadwah",
+        "and other educational institutions-------Sindh Madrassah",
+        "Islamia College Peshawar. Ideology of Pakistan in the light of Speeches",
+        "statements of Allama Iqbal",
+        "Quaid- i Azam Muhammad Ali Jinnah"
+      ]
+    },
+    {
+      "title": "Land and people of Pakistan",
+      "subtopics": []
+    },
+    {
+      "title": "Geography, Society, Natural resources, Agriculture, Industry and education with reference to characteristics, trends and problems",
+      "subtopics": [
+        "Geography",
+        "Society",
+        "Natural resources",
+        "Agriculture",
+        "Industry and education with reference to characteristics",
+        "trends and problems"
+      ]
+    },
+    {
+      "title": "Pakistan and Changing Regional Apparatus",
+      "subtopics": []
+    },
+    {
+      "title": "Nuclear Program of Pakistan, its Safety and Security; International Concerns",
+      "subtopics": []
+    },
+    {
+      "title": "Regional Cooperation Organizations (SAARC,ECO,SCO) and the Role of Pakistan",
+      "subtopics": []
+    },
+    {
+      "title": "Civil-Military Relations in Pakistan",
+      "subtopics": []
+    },
+    {
+      "title": "Economic Challenges in Pakistan",
+      "subtopics": []
+    },
+    {
+      "title": "Non-Traditional Security Threats in Pakistan",
+      "subtopics": []
+    },
+    {
+      "title": "Role of Non-State Actors",
+      "subtopics": []
+    },
+    {
+      "title": "Pakistan’s Role in the Region",
+      "subtopics": []
+    },
+    {
+      "title": "The Palestine Issue",
+      "subtopics": []
+    },
+    {
+      "title": "Changing Security Dynamics for Pakistan",
+      "subtopics": []
+    },
+    {
+      "title": "Challenges to National Security of Pakistan",
+      "subtopics": []
+    },
+    {
+      "title": "Political Evolution Since 1971",
+      "subtopics": []
+    },
+    {
+      "title": "Pakistan and US War on Terror",
+      "subtopics": []
+    },
+    {
+      "title": "Foreign Policy of Pakistan Post 9/11",
+      "subtopics": []
+    },
+    {
+      "title": "Evolution of Democratic System in Pakistan",
+      "subtopics": []
+    },
+    {
+      "title": "Ethnic Issues and National Integration",
+      "subtopics": []
+    },
+    {
+      "title": "Hydro Politics ; Water Issues in Domestic and Regional Context",
+      "subtopics": []
+    },
+    {
+      "title": "Pakistan’s National Interest",
+      "subtopics": []
+    },
+    {
+      "title": "Challenges to Sovereignty",
+      "subtopics": []
+    },
+    {
+      "title": "Pakistan’s Energy Problems and their Effects",
+      "subtopics": []
+    },
+    {
+      "title": "Pakistan’s Relations with Neighbors excluding India",
+      "subtopics": []
+    },
+    {
+      "title": "Pakistan and India Relations Since 1947",
+      "subtopics": []
+    },
+    {
+      "title": "The Kashmir Issue",
+      "subtopics": []
+    },
+    {
+      "title": "The war in Afghanistan since 1979 and its impact on, and challenges to Pakistan in the Post 2014 era.",
+      "subtopics": []
+    },
+    {
+      "title": "Proxy Wars",
+      "subtopics": []
+    },
+    {
+      "title": "Role of External Elements",
+      "subtopics": []
+    },
+    {
+      "title": "Economic Conditions of Pakistan, the Most Recent Economic Survey, the Previous and Current Budgets, and the Problems and Performance of Major Sectors of Economy.",
+      "subtopics": []
+    },
+    {
+      "title": "The Recent Constitutional and Legal Debates, the Latest Constitutional Amendments and Important Legislations, Legal Cases and the Role of Higher Courts.",
+      "subtopics": []
+    },
+    {
+      "title": "The Prevailing Social Problems of Pakistan and the Strategies to Deal with Them, Poverty, Education, Health and Sanitation.",
+      "subtopics": []
+    }
+  ],
+  "comp_isl": [
+    {
+      "title": "Introduction to Islam.",
+      "subtopics": []
+    },
+    {
+      "title": "Concept of Islam",
+      "subtopics": []
+    },
+    {
+      "title": "Importance of Din in Human Life",
+      "subtopics": []
+    },
+    {
+      "title": "Difference between Din and Religion",
+      "subtopics": []
+    },
+    {
+      "title": "Distinctive Aspects of Islam",
+      "subtopics": []
+    },
+    {
+      "title": "Islamic Beliefs & its Impact on Individual & Society and the Fundamental of Islam",
+      "subtopics": []
+    },
+    {
+      "title": "Islamic Worships",
+      "subtopics": []
+    },
+    {
+      "title": "Spiritual, Moral and Social Impact",
+      "subtopics": [
+        "Spiritual",
+        "Moral and Social Impact"
+      ]
+    },
+    {
+      "title": "Study of Sirah of the Prophet Muhammad (PBUH) as Role Model for",
+      "subtopics": []
+    },
+    {
+      "title": "Individual",
+      "subtopics": []
+    },
+    {
+      "title": "Diplomat",
+      "subtopics": []
+    },
+    {
+      "title": "Educator",
+      "subtopics": []
+    },
+    {
+      "title": "Military Strategist",
+      "subtopics": []
+    },
+    {
+      "title": "Peace Maker",
+      "subtopics": []
+    },
+    {
+      "title": "Human Rights & Status of Woman in Islam.",
+      "subtopics": []
+    },
+    {
+      "title": "Human Rights and Status of Woman in Islam",
+      "subtopics": []
+    },
+    {
+      "title": "Dignity of Men and Women",
+      "subtopics": []
+    },
+    {
+      "title": "Islamic Civilization and Culture",
+      "subtopics": []
+    },
+    {
+      "title": "Meanings and the Vital Elements",
+      "subtopics": []
+    },
+    {
+      "title": "Role of Civilization in Development of Human Personality and Community",
+      "subtopics": []
+    },
+    {
+      "title": "Characteristicts of Islamic Civilization (Tawhid, Self-purification, Dignity of Man, Equality, Social Justice, Moral Values, Tolerance, Rule of Law)",
+      "subtopics": [
+        "Characteristicts of Islamic Civilization (Tawhid",
+        "Self-purification",
+        "Dignity of Man",
+        "Equality",
+        "Social Justice",
+        "Moral Values",
+        "Tolerance",
+        "Rule of Law)"
+      ]
+    },
+    {
+      "title": "Islam and the World.",
+      "subtopics": []
+    },
+    {
+      "title": "Impact of Islamic Civilization on the West and Vice Versa",
+      "subtopics": []
+    },
+    {
+      "title": "The Role of Islam in the Modern World",
+      "subtopics": []
+    },
+    {
+      "title": "Muslim World and the Contemporary Challenges",
+      "subtopics": []
+    },
+    {
+      "title": "Rise of Extremism",
+      "subtopics": []
+    },
+    {
+      "title": "Public Administration and Governance in Islam",
+      "subtopics": []
+    },
+    {
+      "title": "Concept of Public Administration in Islam",
+      "subtopics": []
+    },
+    {
+      "title": "Quranic Guidance on Good Governance",
+      "subtopics": []
+    },
+    {
+      "title": "Concept of Governance and its Applications in the light of Qur’an, Sunnah and Fiqh",
+      "subtopics": [
+        "Concept of Governance and its Applications in the light of Qur’an",
+        "Sunnah and Fiqh"
+      ]
+    },
+    {
+      "title": "Governance Structure in Islam (Shura, Legislation, Sources of Islamic Law)",
+      "subtopics": [
+        "Governance Structure in Islam (Shura",
+        "Legislation",
+        "Sources of Islamic Law)"
+      ]
+    },
+    {
+      "title": "Governance under Pious Khilafat",
+      "subtopics": []
+    },
+    {
+      "title": "Particular letters of Hazrat Umar (R.A) and Hazrat Ali (R.A) to different Authority",
+      "subtopics": []
+    },
+    {
+      "title": "Responsibilities of Civil Servants",
+      "subtopics": []
+    },
+    {
+      "title": "System of Accountability(hisbah) in Islam",
+      "subtopics": []
+    },
+    {
+      "title": "Islamic Code of Life.",
+      "subtopics": []
+    },
+    {
+      "title": "Salient Features of Islamic System, Social System, Political System, Economic System, Judicial System, Administrative System,",
+      "subtopics": [
+        "Salient Features of Islamic System",
+        "Social System",
+        "Political System",
+        "Economic System",
+        "Judicial System",
+        "Administrative System"
+      ]
+    },
+    {
+      "title": "Procedure of Ijma and Ijtihad",
+      "subtopics": []
+    },
+    {
+      "title": "Sects and Schools Sunnis (mainstream Muslims), Shi‘ahs (Special devotion for Hazrat Ali and Family of the Prophet), Khawarij (literalists), Mu‘tazilah (rationalists)",
+      "subtopics": [
+        "Sects and Schools Sunnis (mainstream Muslims)",
+        "Shi‘ahs (Special devotion for Hazrat Ali and Family of the Prophet)",
+        "Khawarij (literalists)",
+        "Mu‘tazilah (rationalists)"
+      ]
+    },
+    {
+      "title": "Contemporary Islamic movements and tendencies",
+      "subtopics": []
+    },
+    {
+      "title": "Ikwan al Muslimun (Muslim Brotherhood), Jama‘at-i-Islami, Tablighi Jama‘at, Salafi movement, Fethullah Gulen movement in Turkey, Iranian revolution, extremist groups",
+      "subtopics": [
+        "Ikwan al Muslimun (Muslim Brotherhood)",
+        "Jama‘at-i-Islami",
+        "Tablighi Jama‘at",
+        "Salafi movement",
+        "Fethullah Gulen movement in Turkey",
+        "Iranian revolution",
+        "extremist groups"
+      ]
+    }
+  ],
+  "polsci": [
+    {
+      "title": "Western Political Thought",
+      "subtopics": []
+    },
+    {
+      "title": "Plato, Aristotle, Machiavelli, Montesquieu, Hobbes, Locke, Rousseau, Kant, Mill, Bentham, Hegel, Marx, Lenin, Mao, Gramsci, Karl Popper, Pierre Bourdieu, John Rawls, Frances Fukuyama, Foucault, Derrida, Kierkegaard, Jean Paul Sartre, Rene Descartes",
+      "subtopics": []
+    },
+    {
+      "title": "Muslim Political Thought",
+      "subtopics": []
+    },
+    {
+      "title": "Al-Farabi, Al-Mawardi, Ibn Rushd, Imam Ghazali, Ibn Taymiyyah, Nizam-ul-MulkTusi, Ibn Khaldun, Shah Waliullah, Allama Muhammad Iqbal, Jamaluddin Afghni, Rashid Rida. Part -B (50 Marks)",
+      "subtopics": []
+    },
+    {
+      "title": "State System",
+      "subtopics": []
+    },
+    {
+      "title": "The nature and emergence of modern nation-state system, Islamic concept of state and Ummah",
+      "subtopics": [
+        "The nature and emergence of modern nation-state system",
+        "Islamic concept of state and Ummah"
+      ]
+    },
+    {
+      "title": "Political Concept (Western and Islamic)",
+      "subtopics": []
+    },
+    {
+      "title": "Sovereignty, Justice, Law, Liberty, Freedom, Equality, Rights and Duties, Human Rights, Political Authority and Power",
+      "subtopics": [
+        "Sovereignty",
+        "Justice",
+        "Law",
+        "Liberty",
+        "Freedom",
+        "Equality",
+        "Rights and Duties",
+        "Human Rights",
+        "Political Authority and Power"
+      ]
+    },
+    {
+      "title": "Comparative Politics",
+      "subtopics": []
+    },
+    {
+      "title": "Political Socialization, Political Culture, Political Development, Political Recruitment, Social Change, Civil Society, Violence and Terrorism in Politics, Gender and Politics, Women Empowerment",
+      "subtopics": [
+        "Political Socialization",
+        "Political Culture",
+        "Political Development",
+        "Political Recruitment",
+        "Social Change",
+        "Civil Society",
+        "Violence and Terrorism in Politics",
+        "Gender and Politics",
+        "Women Empowerment"
+      ]
+    },
+    {
+      "title": "Political Participation",
+      "subtopics": []
+    },
+    {
+      "title": "Political Change and Revolution, Elections, Electoral System, Public Opinion, Propaganda, Political Parties, Pressure Groups and Lobbies",
+      "subtopics": [
+        "Political Change and Revolution",
+        "Elections",
+        "Electoral System",
+        "Public Opinion",
+        "Propaganda",
+        "Political Parties",
+        "Pressure Groups and Lobbies"
+      ]
+    },
+    {
+      "title": "Political Institutions and Role of Government",
+      "subtopics": []
+    },
+    {
+      "title": "Legislature, Executive, Judiciary, Political Elites, Civil and Military Bureaucracy",
+      "subtopics": [
+        "Legislature",
+        "Executive",
+        "Judiciary",
+        "Political Elites",
+        "Civil and Military Bureaucracy"
+      ]
+    },
+    {
+      "title": "Forms of Government",
+      "subtopics": []
+    },
+    {
+      "title": "Monarchy, Democratic, Dictatorship, Totalitarian/Authoritarian, Unitary, Federal, Confederation, Presidential and Parliamentary",
+      "subtopics": [
+        "Monarchy",
+        "Democratic",
+        "Dictatorship",
+        "Totalitarian/Authoritarian",
+        "Unitary",
+        "Federal",
+        "Confederation",
+        "Presidential and Parliamentary"
+      ]
+    },
+    {
+      "title": "Political Ideologies",
+      "subtopics": []
+    },
+    {
+      "title": "Capitalism, Marxism, Communism, Socialism, Totalitarism, Fascims, Nationalism, Islamic Political Ideology",
+      "subtopics": [
+        "Capitalism",
+        "Marxism",
+        "Communism",
+        "Socialism",
+        "Totalitarism",
+        "Fascims",
+        "Nationalism",
+        "Islamic Political Ideology"
+      ]
+    },
+    {
+      "title": "Local Self Government",
+      "subtopics": []
+    },
+    {
+      "title": "Theory and practice of Local Self-Government with special reference to Pakistan, Comparative analyses of systems of local governance, Public Administration and Public Policy. PAPER-II (MARKS-100) Part-A (30 Marks)",
+      "subtopics": []
+    },
+    {
+      "title": "Comparative and Analytical Study of the Political Systems",
+      "subtopics": []
+    },
+    {
+      "title": "Political System of U.S.A, U.K, France and Germany",
+      "subtopics": [
+        "Political System of U.S.A",
+        "U.K",
+        "France and Germany"
+      ]
+    },
+    {
+      "title": "Global and Regional Integration Globalization and Politics, Global Civil Society, Regional politico economic integration and organizational structure of the European Union, SAARC, ECO, International Financial Regimes IMF and WTO. Part-B (70 Marks)",
+      "subtopics": []
+    },
+    {
+      "title": "Comparative and Analytical Study of the Political Systems",
+      "subtopics": []
+    },
+    {
+      "title": "Political system of Turkey, Iran, Malaysia, India and China",
+      "subtopics": [
+        "Political system of Turkey",
+        "Iran",
+        "Malaysia",
+        "India and China"
+      ]
+    },
+    {
+      "title": "Political Movements in India (Colonial Period)",
+      "subtopics": []
+    },
+    {
+      "title": "Rise of Muslim Nationalism in South Asia and Pakistan Movement (with special reference to the role of Sir Syed Ahmed Khan, Allama Muhammad Iqbal and Quaid-i-Azam Mohammad Ali Jinnah)",
+      "subtopics": []
+    },
+    {
+      "title": "Government and Politics in Pakistan",
+      "subtopics": []
+    },
+    {
+      "title": "Constitution making from 1947 -1956, A comparative and critical analysis of 1956, 1962, 1973 Constitutions of Pakistan, Constitutional Amendments up-to-date, Federal Structure in Pakistan, and Central-Provincial relations after 18th amendment, Political Culture of Pakistan, Political Developments and the Role of Civil and Military Bureaucracy, Judiciary, Feudalism, Dynastic Politics, Political Parties and Interest Groups, Elections and Voting Behavior, Religion and Politics, Ethnicity and National Integration",
+      "subtopics": []
+    },
+    {
+      "title": "International Relations",
+      "subtopics": []
+    },
+    {
+      "title": "History of International Relations: Post World War-II (WW-II) Period. Foreign Policy of Pakistan: National Interests and Major Determinants i-e 1). Size/Geography 2). Economic Development 3). Security 4). Advancement in Technology 5). National Capacity 6). Political Parties/Leadership 7). Ideology 8). National Interest 9). Role of Press/Bureaucracy 10). Social Structure 11). Public Opinion 12). Diplomacy. 13). Foreign Policy-making Process in Pakistan Also External Factors like International Power Structure, International Organizations, World Public Opinion and Reaction of other States",
+      "subtopics": [
+        "Post World War-II (WW-II) Period. Foreign Policy of Pakistan: National Interests",
+        "Major Determinants i-e 1). Size/Geography 2). Economic Development 3). Security 4). Advancement in Technology 5). National Capacity 6). Political Parties/Leadership 7). Ideology 8). National Interest 9). Role of Press/Bureaucracy 10). Social Structure 11). Public Opinion 12). Diplomacy. 13). Foreign Policy-making Process in Pakistan Also External Factors like International Power Structure",
+        "International Organizations",
+        "World Public Opinion",
+        "Reaction of other States"
+      ]
+    }
+  ]
+}
