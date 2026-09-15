@@ -406,21 +406,26 @@ const Dashboard = ({ selectedSubjects, completedTopics, openTimer, dailyStreak }
 };
 
 
-const PastPapersView = ({ rootFolderId, selectedSubjects }) => {
-    const activeSubjectNames = [
-        ...compulsorySubjects.map(s => s.name.toLowerCase().trim()),
-        ...optionalSubjects.filter(s => selectedSubjects.includes(s.id)).map(s => s.name.toLowerCase().trim())
-    ];
-    const allSubjectNames = [...compulsorySubjects, ...optionalSubjects].map(s => s.name.toLowerCase().trim());
-    const selectedGroups = optionalSubjects.filter(s => selectedSubjects.includes(s.id)).map(s => s.group);
-
-    const [currentFolderId, setCurrentFolderId] = useState(rootFolderId);
+const PastPapersView = ({ rootFolderId, selectedSubjects }) => {    const [currentFolderId, setCurrentFolderId] = useState(rootFolderId);
     const [folderHistory, setFolderHistory] = useState([{ id: rootFolderId, name: 'Root' }]);
     const [files, setFiles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const API_KEY = 'AIzaSyBRb_sUPTEQDnHi223Kwld4JHKM-5K9000';
+
+    const stripStr = (str) => str.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9\s]/g, '').trim();
+
+    const unselectedSubjects = [...compulsorySubjects, ...optionalSubjects]
+        .filter(s => !selectedSubjects.includes(s.id) && !compulsorySubjects.some(c => c.id === s.id))
+        .map(s => stripStr(s.name));
+
+    const activeSubjects = [...compulsorySubjects, ...optionalSubjects]
+        .filter(s => selectedSubjects.includes(s.id) || compulsorySubjects.some(c => c.id === s.id))
+        .map(s => stripStr(s.name));
+
+    const selectedGroups = optionalSubjects.filter(s => selectedSubjects.includes(s.id)).map(s => s.group);
+
     const fetchFiles = async () => {
         setLoading(true);
         setError(null);
@@ -482,16 +487,20 @@ const PastPapersView = ({ rootFolderId, selectedSubjects }) => {
             let allowed = true;
             
             if (isFolder) {
-                const folderName = f.name.toLowerCase().trim();
-                const groupMatch = folderName.match(/group\s*(\d+)/i);
+                const fClean = stripStr(f.name);
+                const groupMatch = fClean.match(/group\s*(\d+)/);
                 
                 if (groupMatch) {
                     const groupNum = parseInt(groupMatch[1], 10);
                     allowed = selectedGroups.includes(groupNum);
-                } else if (allSubjectNames.includes(folderName)) {
-                    allowed = activeSubjectNames.includes(folderName);
+                } else {
+                    const matchesUnselected = unselectedSubjects.some(unsel => unsel.includes(fClean) || fClean.includes(unsel));
+                    const matchesSelected = activeSubjects.some(sel => sel.includes(fClean) || fClean.includes(sel));
+                    
+                    if (matchesUnselected && !matchesSelected) {
+                        allowed = false;
+                    }
                 }
-                // "Compulsory" and "Optional" are inherently allowed if they don't match group/subject directly
             }
 
             if (!allowed) {
@@ -876,6 +885,20 @@ export default function App() {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [timerOpen, setTimerOpen] = useState(false);
     const [selectedSubjects, setSelectedSubjects] = useState([]);
+    
+    useEffect(() => {
+        const saved = localStorage.getItem('selectedSubjects');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.length > 0) setSelectedSubjects(parsed);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (selectedSubjects.length > 0) {
+            localStorage.setItem('selectedSubjects', JSON.stringify(selectedSubjects));
+        }
+    }, [selectedSubjects]);
     const [completedTopics, setCompletedTopics] = useState({});
     const [facts, setFacts] = useState([]);
     const [timerSettings, setTimerSettings] = useState({ active: false, time: 25 * 60, task: '' });
