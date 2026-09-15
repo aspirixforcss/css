@@ -407,7 +407,10 @@ const Dashboard = ({ selectedSubjects, completedTopics, openTimer, dailyStreak }
 
 
 const PastPapersView = ({ rootFolderId, selectedSubjects }) => {
-    const activeSubjectNames = [...compulsorySubjects, ...optionalSubjects].filter(s => selectedSubjects.includes(s.id)).map(s => s.name.toLowerCase().trim());
+    const activeSubjectNames = [
+        ...compulsorySubjects.map(s => s.name.toLowerCase().trim()),
+        ...optionalSubjects.filter(s => selectedSubjects.includes(s.id)).map(s => s.name.toLowerCase().trim())
+    ];
     const allSubjectNames = [...compulsorySubjects, ...optionalSubjects].map(s => s.name.toLowerCase().trim());
     const selectedGroups = optionalSubjects.filter(s => selectedSubjects.includes(s.id)).map(s => s.group);
 
