@@ -2,14 +2,14 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 
-// TODO: Replace with your Firebase project configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyBRb_sUPTEQDnHi223Kwld4JHKM-5K9000",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "aspirixforcss-508015.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "aspirixforcss-508015",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "aspirixforcss-508015.appspot.com",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "114377379093",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ""
+  apiKey: "AIzaSyC5Y8snmCFNiw3DVUJYVffxKIYqMaA4yI8",
+  authDomain: "aspirixforcss.firebaseapp.com",
+  projectId: "aspirixforcss",
+  storageBucket: "aspirixforcss.firebasestorage.app",
+  messagingSenderId: "199752238385",
+  appId: "1:199752238385:web:03b4b31f586d5854bc9c10",
+  measurementId: "G-3NH5PE5BB3"
 };
 
 const app = initializeApp(firebaseConfig);
