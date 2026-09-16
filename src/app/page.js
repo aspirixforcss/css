@@ -233,7 +233,7 @@ const OnboardingWizard = ({ onComplete }) => {
     );
 };
 
-const Sidebar = ({ currentView, setCurrentView, isDarkMode, toggleTheme, user }) => {
+const Sidebar = ({ currentView, setCurrentView, isDarkMode, toggleTheme, user, isPro }) => {
     const navItems = [
         { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard' },
         { id: 'syllabus', icon: 'fa-book-open', label: 'Syllabus Tracker' },
@@ -950,7 +950,7 @@ const TemplateView = ({ title, description, icon }) => (
 
 
 
-const VocabFlashcards = () => {
+const VocabFlashcards = ({ isPro }) => {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [flipped, setFlipped] = useState(false);
@@ -1028,6 +1028,10 @@ const VocabFlashcards = () => {
     const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
 
     const handleStart = (category) => {
+        if (!isPro && !['A','B','C'].includes(category)) {
+            alert('Unlock Pro to access vocabulary for letters D to Z. Click on Past Papers or Current Affairs to see how to upgrade.');
+            return;
+        }
         let filtered = [];
         if (category === 'Random') {
             filtered = [...activeData].sort(() => 0.5 - Math.random());
@@ -1317,9 +1321,173 @@ const SubjectWiseMCQs = ({ selectedSubjects }) => {
 };
 
 
+
+const PremiumUpgradeView = () => (
+    <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-surfaceDark rounded-3xl border border-primary/20 shadow-xl max-w-2xl mx-auto my-12 text-center animate-fade-in relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -z-10"></div>
+        
+        <div className="w-24 h-24 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-orange-500/30">
+            <i className="fa-solid fa-crown text-white text-4xl"></i>
+        </div>
+        <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-4">Upgrade to Pro</h2>
+        <p className="text-slate-500 dark:text-slate-400 mb-8 text-lg">Unlock all premium features including Past Papers, Subject MCQs, Full Vocabulary (D-Z), and Daily Current Affairs.</p>
+        
+        <div className="flex flex-col md:flex-row gap-6 w-full mb-10">
+            <div className="flex-1 border-2 border-slate-100 dark:border-slate-700 rounded-2xl p-6 bg-slate-50 dark:bg-slate-800/30">
+                <div className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-sm mb-2">Monthly</div>
+                <div className="text-4xl font-black text-slate-800 dark:text-white mb-4">Rs 99<span className="text-lg font-medium text-slate-400">/mo</span></div>
+            </div>
+            <div className="flex-1 border-2 border-primary bg-primary/5 rounded-2xl p-6 relative overflow-hidden shadow-lg shadow-primary/10 transform md:scale-105">
+                <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">Best Value</div>
+                <div className="text-primary font-bold uppercase tracking-wider text-sm mb-2">Yearly</div>
+                <div className="text-4xl font-black text-primary mb-4">Rs 1000<span className="text-lg font-medium opacity-60">/yr</span></div>
+            </div>
+        </div>
+        
+        <div className="bg-slate-50 dark:bg-slate-800/80 w-full rounded-2xl p-6 text-left border border-slate-200 dark:border-slate-700 shadow-sm">
+            <h3 className="font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                <i className="fa-solid fa-money-bill-transfer text-green-500 text-xl"></i> How to Upgrade via Easypaisa
+            </h3>
+            <ol className="list-decimal pl-5 space-y-4 text-sm md:text-base text-slate-600 dark:text-slate-300">
+                <li>Open your Easypaisa app and send the payment to:<br/>
+                    <strong className="text-xl font-black text-primary bg-primary/10 px-3 py-1.5 rounded-lg mt-2 inline-block shadow-sm">03365005815</strong> <span className="font-semibold ml-2">(Naseem Khan)</span>
+                </li>
+                <li>Take a screenshot of the successful transaction.</li>
+                <li>WhatsApp the screenshot and your registered email address to <strong>03365005815</strong>.</li>
+                <li>Your account will be manually upgraded to Pro within a few hours!</li>
+            </ol>
+        </div>
+    </div>
+);
+
+const CurrentAffairsView = () => {
+    const [news, setNews] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchNews = async () => {
+            try {
+                // Fetch Dawn News RSS via rss2json
+                const dawnRes = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.dawn.com/feeds/home/');
+                const dawnData = await dawnRes.json();
+                
+                // Fetch International News (Al Jazeera)
+                const intlRes = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.aljazeera.com/xml/rss/all.xml');
+                const intlData = await intlRes.json();
+                
+                let combined = [...(dawnData.items || []), ...(intlData.items || [])];
+                
+                // Keep only items that have actual content/description
+                combined = combined.filter(i => (i.content || i.description) && i.title);
+                
+                // Randomize slightly but keep top Dawn items near top
+                combined.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
+                
+                // Top editorial summary points
+                if (combined.length > 0) {
+                    const top = combined[0];
+                    const temp = document.createElement('div');
+                    temp.innerHTML = top.content || top.description || "";
+                    const text = temp.textContent || temp.innerText || "";
+                    const sentences = text.split('. ').filter(s => s.trim().length > 30).slice(0, 4);
+                    top.summaryPoints = sentences.map(s => s.trim() + (s.trim().endsWith('.') ? '' : '.'));
+                }
+                
+                setNews(combined);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchNews();
+    }, []);
+
+    if (loading) return (
+        <div className="flex justify-center items-center h-full pt-32 flex-col gap-4 text-slate-500">
+            <i className="fa-solid fa-circle-notch fa-spin text-4xl text-primary"></i>
+            <p className="font-bold animate-pulse">Fetching latest news and editorials...</p>
+        </div>
+    );
+
+    const topArticle = news[0];
+    const otherArticles = news.slice(1, 15);
+
+    return (
+        <div className="max-w-5xl mx-auto p-4 md:p-8 animate-fade-in pb-32">
+            <div className="flex items-center gap-3 mb-2">
+                <i className="fa-solid fa-fire text-3xl text-orange-500 animate-pulse"></i>
+                <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white">Current Affairs Hot Topics</h2>
+            </div>
+            <p className="text-slate-500 mb-8 font-medium">Automatically updated from Dawn News & International Sources.</p>
+            
+            {topArticle && (
+                <div className="bg-white dark:bg-surfaceDark rounded-3xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 mb-10 group">
+                    <div className="bg-primary/10 px-6 py-3 border-b border-primary/10 flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>
+                        <span className="font-bold text-primary uppercase tracking-widest text-xs">Top Editorial / Trending</span>
+                    </div>
+                    {topArticle.enclosure?.link && (
+                        <div className="h-48 md:h-72 w-full bg-slate-100 overflow-hidden relative">
+                            <img src={topArticle.enclosure.link} alt={topArticle.title} className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                            <h3 className="absolute bottom-6 left-6 right-6 text-white text-2xl md:text-4xl font-bold leading-tight">{topArticle.title}</h3>
+                        </div>
+                    )}
+                    <div className="p-6 md:p-8">
+                        {!topArticle.enclosure?.link && (
+                            <h3 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white mb-4 leading-tight">{topArticle.title}</h3>
+                        )}
+                        <div className="text-sm text-slate-500 mb-6 flex flex-wrap items-center gap-3">
+                            <span className="bg-slate-100 dark:bg-slate-800 px-4 py-1.5 rounded-full font-bold shadow-sm"><i className="fa-regular fa-clock text-primary mr-1"></i> {new Date(topArticle.pubDate).toLocaleString()}</span>
+                            <span className="bg-slate-100 dark:bg-slate-800 px-4 py-1.5 rounded-full font-bold shadow-sm"><i className="fa-solid fa-globe text-primary mr-1"></i> {topArticle.link.includes('dawn.com') ? 'Dawn News' : 'International'}</span>
+                        </div>
+                        <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-100 dark:border-slate-700/50 mb-6">
+                            <h4 className="font-black text-slate-700 dark:text-slate-300 mb-4 uppercase tracking-wider text-xs text-primary flex items-center gap-2"><i className="fa-solid fa-bolt"></i> Quick Summary</h4>
+                            <ul className="space-y-4">
+                                {topArticle.summaryPoints?.length > 0 ? topArticle.summaryPoints.map((point, idx) => (
+                                    <li key={idx} className="flex items-start gap-3 text-slate-700 dark:text-slate-200 font-medium leading-relaxed">
+                                        <i className="fa-solid fa-circle-check text-green-500 mt-1 shadow-sm rounded-full"></i>
+                                        <span>{point}</span>
+                                    </li>
+                                )) : (
+                                    <li className="text-slate-500">No summary available.</li>
+                                )}
+                            </ul>
+                        </div>
+                        <a href={topArticle.link} target="_blank" rel="noreferrer" className="inline-block bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3.5 rounded-xl font-bold hover:bg-primary dark:hover:bg-primary transition-colors shadow-md">
+                            Read Full Article <i className="fa-solid fa-arrow-up-right-from-square ml-2 text-sm opacity-80"></i>
+                        </a>
+                    </div>
+                </div>
+            )}
+
+            <h3 className="font-bold text-xl text-slate-800 dark:text-white mb-6 flex items-center gap-2"><i className="fa-solid fa-newspaper text-primary"></i> More Headlines</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {otherArticles.map((article, idx) => (
+                    <a key={idx} href={article.link} target="_blank" rel="noreferrer" className="group flex flex-col justify-between bg-white dark:bg-surfaceDark p-5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-colors shadow-sm hover:shadow-md">
+                        <div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-[10px] text-white bg-primary px-2 py-0.5 rounded font-black uppercase tracking-wider">{article.link.includes('dawn.com') ? 'Dawn' : 'Global'}</span>
+                            </div>
+                            <h4 className="font-bold text-slate-800 dark:text-white mb-3 group-hover:text-primary transition-colors leading-snug line-clamp-3">{article.title}</h4>
+                        </div>
+                        <div className="text-xs font-bold text-slate-400 mt-4 border-t border-slate-100 dark:border-slate-800 pt-3 flex justify-between items-center">
+                            <span>{new Date(article.pubDate).toLocaleDateString()}</span>
+                            <span className="text-primary opacity-0 group-hover:opacity-100 transition-opacity bg-primary/10 px-2 py-1 rounded">Read <i className="fa-solid fa-arrow-right ml-1"></i></span>
+                        </div>
+                    </a>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 export default function App() {
     const [appState, setAppState] = useState('login');
     const [user, setUser] = useState(null);
+    const [isPro, setIsPro] = useState(false);
     const [loadingAuth, setLoadingAuth] = useState(true);
     const [currentView, setCurrentView] = useState('dashboard');
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -1344,6 +1512,7 @@ export default function App() {
                     const docSnap = await getDoc(docRef);
                     if (docSnap.exists()) {
                         const data = docSnap.data();
+                        setIsPro(!!data.isPro);
                         
                         let hasSubjects = false;
                         if (data.selectedSubjects && data.selectedSubjects.length > 0) {
@@ -1515,19 +1684,28 @@ export default function App() {
 
             {/* Sidebar (Responsive) */}
             <div className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <Sidebar currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setMobileMenuOpen(false); }} isDarkMode={isDarkMode} toggleTheme={toggleTheme} user={user} />
+                <Sidebar currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setMobileMenuOpen(false); }} isDarkMode={isDarkMode} toggleTheme={toggleTheme} user={user} isPro={isPro} />
             </div>
 
             <main className="flex-1 h-full flex flex-col relative w-full overflow-y-auto">
-                {currentView === 'dashboard' && <Dashboard selectedSubjects={selectedSubjects} completedTopics={completedTopics} openTimer={() => setTimerOpen(true)} dailyStreak={dailyStreak} user={user} />}
-                {currentView === 'syllabus' && <SyllabusTracker selectedSubjects={selectedSubjects} completedTopics={completedTopics} setCompletedTopics={setCompletedTopics} />}
-                {currentView === 'timetable' && <Timetable startTaskTimer={(task, mins) => { setTimerSettings({ active: true, time: mins * 60, task }); setTimerOpen(true); }} />}
-                {currentView === 'pastpapers' && <PastPapersView rootFolderId='1loejZdweyTir2QqtUKiHAAFOs5bRxfmz' selectedSubjects={selectedSubjects} />}
-                {currentView === 'factbook' && <FactBook facts={facts} setFacts={setFacts} />}
-                {currentView === 'currentaffairs' && <TemplateView title="Current Affairs Hot Topics" description="Deep-dive analysis on national security, regional dynamics, and global treaties." icon="fa-globe" />}
-                {currentView === 'mcqs' && <SubjectWiseMCQs selectedSubjects={selectedSubjects} />}
-                {currentView === 'vocab' && <VocabFlashcards />}
-                {currentView === 'flashcards' && <TemplateView title="Active Recall Flash Cards" description="Flip-card revision system for rapid memory retention." icon="fa-clone" />}
+                {
+                    (() => {
+                        const premiumViews = ['pastpapers', 'mcqs', 'currentaffairs'];
+                        if (premiumViews.includes(currentView) && !isPro) return <PremiumUpgradeView />;
+                        
+                        switch (currentView) {
+                            case 'dashboard': return <Dashboard selectedSubjects={selectedSubjects} completedTopics={completedTopics} openTimer={() => setTimerOpen(true)} dailyStreak={dailyStreak} user={user} />;
+                            case 'syllabus': return <SyllabusTracker selectedSubjects={selectedSubjects} completedTopics={completedTopics} setCompletedTopics={setCompletedTopics} />;
+                            case 'timetable': return <Timetable startTaskTimer={(task, mins) => { setTimerSettings({ active: true, time: mins * 60, task }); setTimerOpen(true); }} />;
+                            case 'pastpapers': return <PastPapersView rootFolderId='1loejZdweyTir2QqtUKiHAAFOs5bRxfmz' selectedSubjects={selectedSubjects} />;
+                            case 'factbook': return <FactBook facts={facts} setFacts={setFacts} />;
+                            case 'currentaffairs': return <CurrentAffairsView />;
+                            case 'mcqs': return <SubjectWiseMCQs selectedSubjects={selectedSubjects} />;
+                            case 'vocab': return <VocabFlashcards isPro={isPro} />;
+                            default: return <Dashboard selectedSubjects={selectedSubjects} completedTopics={completedTopics} openTimer={() => setTimerOpen(true)} dailyStreak={dailyStreak} user={user} />;
+                        }
+                    })()
+                }
             </main>
             <CountdownTimerModal isOpen={timerOpen} onClose={() => setTimerOpen(false)} settings={timerSettings} />
         </div>
