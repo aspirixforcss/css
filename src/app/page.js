@@ -349,7 +349,7 @@ const CountdownTimerModal = ({ isOpen, onClose, settings }) => {
     );
 };
 
-const Dashboard = ({ selectedSubjects, completedTopics, openTimer, dailyStreak }) => {
+const Dashboard = ({ selectedSubjects, completedTopics, openTimer, dailyStreak, user }) => {
     const calculateProgress = (subjectList) => {
         let total = 0; let done = 0;
         subjectList.forEach(sub => {
@@ -368,46 +368,83 @@ const Dashboard = ({ selectedSubjects, completedTopics, openTimer, dailyStreak }
     const optStats = calculateProgress(optionalSubjects.filter(sub => selectedSubjects.includes(sub.id)));
     const compPercent = compStats.total > 0 ? Math.round((compStats.done / compStats.total) * 100) : 0;
     const optPercent = optStats.total > 0 ? Math.round((optStats.done / optStats.total) * 100) : 0;
+    
+    const firstName = user?.displayName ? user.displayName.split(' ')[0] : 'Aspirant';
+    
     return (
-        <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in pb-32 w-full">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-                <div>
-                    <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">Dashboard & Overview</h2>
-                    <p className="text-slate-500 dark:text-slate-400">CE-2025 countdown: <span className="font-bold text-primary">142 Days Remaining</span></p>
+        <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in pb-32 w-full font-sans">
+            {/* Mobile-optimized Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-10 gap-6">
+                <div className="w-full">
+                    <div className="inline-block px-3 py-1 bg-primary/10 text-primary font-bold text-xs rounded-full mb-3 uppercase tracking-wider">CE-2025 Goal</div>
+                    <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 dark:text-white mb-2 leading-tight">Welcome back, <span className="text-primary">{firstName}</span></h2>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2">
+                        <i className="fa-regular fa-calendar text-primary/70"></i> 142 Days Remaining
+                    </p>
                 </div>
-                <button onClick={openTimer} className="bg-white dark:bg-surfaceDark text-slate-800 dark:text-white px-6 py-4 rounded-2xl font-bold shadow-lg border border-slate-200 dark:border-slate-700 flex items-center gap-3 hover:-translate-y-1 transition-all">
-                    <i className="fa-solid fa-stopwatch text-primary text-xl"></i> Launch Stopwatch
+                <button onClick={openTimer} className="w-full md:w-auto bg-gradient-to-r from-primary to-green-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg shadow-primary/30 flex items-center justify-center gap-3 active:scale-95 hover:scale-105 transition-all">
+                    <i className="fa-solid fa-stopwatch text-xl"></i> Launch Stopwatch
                 </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div className="bg-white dark:bg-surfaceDark p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Compulsory Progress</h3>
-                    <div className="flex justify-between items-end mb-2">
-                        <div className="text-4xl font-black text-blue-500">{compPercent}%</div>
-                        <div className="text-sm font-semibold text-slate-400">{compStats.done} / {compStats.total} Topics</div>
+            
+            {/* Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10">
+                {/* Compulsory Card */}
+                <div className="bg-white dark:bg-surfaceDark p-6 md:p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-bl-[100px] -z-0"></div>
+                    <div className="flex items-center gap-4 mb-6 relative z-10">
+                        <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500 text-xl">
+                            <i className="fa-solid fa-book"></i>
+                        </div>
+                        <h3 className="font-bold text-slate-700 dark:text-slate-200 text-lg">Compulsory</h3>
                     </div>
-                    <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2.5">
-                        <div className="bg-blue-500 h-2.5 rounded-full" style={{width: `${compPercent}%`}}></div>
+                    <div className="flex justify-between items-end mb-3 relative z-10">
+                        <div className="text-5xl font-black text-slate-800 dark:text-white tracking-tighter">{compPercent}<span className="text-2xl text-slate-400 font-bold">%</span></div>
+                        <div className="text-sm font-bold text-slate-400 bg-slate-50 dark:bg-slate-800/50 px-3 py-1 rounded-lg">{compStats.done} / {compStats.total}</div>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 relative z-10 overflow-hidden">
+                        <div className="bg-blue-500 h-full rounded-full transition-all duration-1000 ease-out" style={{width: `${compPercent}%`}}></div>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-surfaceDark p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Optional Progress</h3>
-                    <div className="flex justify-between items-end mb-2">
-                        <div className="text-4xl font-black text-primary">{optPercent}%</div>
-                        <div className="text-sm font-semibold text-slate-400">{optStats.done} / {optStats.total} Topics</div>
+
+                {/* Optional Card */}
+                <div className="bg-white dark:bg-surfaceDark p-6 md:p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[100px] -z-0"></div>
+                    <div className="flex items-center gap-4 mb-6 relative z-10">
+                        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary text-xl">
+                            <i className="fa-solid fa-layer-group"></i>
+                        </div>
+                        <h3 className="font-bold text-slate-700 dark:text-slate-200 text-lg">Optional</h3>
                     </div>
-                    <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2.5">
-                        <div className="bg-primary h-2.5 rounded-full" style={{width: `${optPercent}%`}}></div>
+                    <div className="flex justify-between items-end mb-3 relative z-10">
+                        <div className="text-5xl font-black text-slate-800 dark:text-white tracking-tighter">{optPercent}<span className="text-2xl text-slate-400 font-bold">%</span></div>
+                        <div className="text-sm font-bold text-slate-400 bg-slate-50 dark:bg-slate-800/50 px-3 py-1 rounded-lg">{optStats.done} / {optStats.total}</div>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 relative z-10 overflow-hidden">
+                        <div className="bg-primary h-full rounded-full transition-all duration-1000 ease-out" style={{width: `${optPercent}%`}}></div>
                     </div>
                 </div>
-                <div className="bg-gradient-to-br from-emerald-500 to-green-700 p-6 rounded-3xl text-white flex flex-col justify-center">
-                    <h3 className="font-bold mb-1 text-green-100">Daily Streak</h3>
-                    <div className="text-4xl font-black flex items-center gap-2">{dailyStreak} Days <i className="fa-solid fa-fire text-yellow-300"></i></div>
+
+                {/* Streak Card */}
+                <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-6 md:p-8 rounded-[2rem] text-white flex flex-col justify-between shadow-lg shadow-orange-500/20 relative overflow-hidden">
+                    <div className="absolute -right-6 -top-6 text-9xl opacity-20"><i className="fa-solid fa-fire"></i></div>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-2 opacity-90 font-semibold tracking-wide uppercase text-sm">
+                            <i className="fa-solid fa-bolt"></i> Daily Streak
+                        </div>
+                        <div className="text-6xl font-black tracking-tighter mt-4 flex items-baseline gap-2">
+                            {dailyStreak} <span className="text-2xl font-bold opacity-80">Days</span>
+                        </div>
+                    </div>
+                    <div className="mt-8 bg-white/20 backdrop-blur-sm rounded-xl p-3 text-sm font-medium relative z-10">
+                        Keep it up! Consistency is the key to CSS.
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
+
 
 
 const PastPapersView = ({ rootFolderId, selectedSubjects }) => {    const [currentFolderId, setCurrentFolderId] = useState(rootFolderId);
@@ -481,13 +518,15 @@ const PastPapersView = ({ rootFolderId, selectedSubjects }) => {    const [curre
                     </div>
                     
                     <div className="flex-1 relative w-full h-full bg-slate-100 overflow-hidden">
-                        {/* We use ?rm=minimal to remove Drive's top bar if possible, and scale the iframe to fully fit */}
-                        <iframe 
-                            src={`https://drive.google.com/file/d/${selectedFile.id}/preview?rm=minimal`} 
-                            className="absolute inset-0 w-full h-full border-0" 
-                            allow="autoplay"
-                            style={{ width: '100vw', height: 'calc(100vh - 70px)' }}
-                        ></iframe>
+                        {/* Mobile-friendly iframe wrap to hide pop-up */}
+                        <div className="absolute inset-0 w-full h-full overflow-hidden" style={{ top: '60px' }}>
+                            <iframe 
+                                src={`https://drive.google.com/file/d/${selectedFile.id}/preview?rm=minimal`} 
+                                className="absolute w-full border-0" 
+                                allow="autoplay"
+                                style={{ top: '-60px', left: 0, height: 'calc(100vh + 10px)' }}
+                            ></iframe>
+                        </div>
                     </div>
                 </div>
             ) : (
@@ -553,6 +592,8 @@ const PastPapersView = ({ rootFolderId, selectedSubjects }) => {    const [curre
         </div>
     );
 };
+
+
 
 
 
@@ -736,16 +777,17 @@ const Timetable = ({ startTaskTimer }) => {
     return (
         <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in pb-32 w-full">
             <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">Study Timetable</h2>
-            <p className="text-slate-500 dark:text-slate-400 mb-8">Organize your study sessions day by day.</p>
-            <div className="flex flex-col lg:flex-row gap-8 items-start">
+            <p className="text-slate-500 dark:text-slate-400 mb-6 md:mb-8">Organize your study sessions day by day.</p>
+            <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
                 <div className="w-full lg:w-64 flex-shrink-0 space-y-4">
-                    <div className="bg-white dark:bg-surfaceDark p-4 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                        <h3 className="font-bold text-slate-800 dark:text-white mb-4 px-2">Days</h3>
-                        <div className="space-y-1 max-h-[400px] overflow-y-auto pr-1">
+                    <div className="bg-white dark:bg-surfaceDark p-4 md:p-4 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <h3 className="font-bold text-slate-800 dark:text-white mb-3 md:mb-4 px-2 hidden md:block">Days</h3>
+                        {/* Mobile horizontal scroll for days, vertical on desktop */}
+                        <div className="flex md:flex-col gap-2 md:gap-1 max-h-none md:max-h-[400px] overflow-x-auto md:overflow-y-auto pr-1 pb-2 md:pb-0" style={{ scrollbarWidth: 'none' }}>
                             {days.map(day => (
-                                <div key={day} className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors ${activeDay === day ? 'bg-primary text-white font-bold' : 'hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-600 dark:text-slate-300'}`} onClick={() => setActiveDay(day)}>
+                                <div key={day} className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors whitespace-nowrap shrink-0 md:w-full ${activeDay === day ? 'bg-primary text-white font-bold shadow-md md:shadow-none' : 'bg-slate-100 md:bg-transparent hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-800/80 text-slate-600 dark:text-slate-300'}`} onClick={() => setActiveDay(day)}>
                                     <span className="truncate pr-2">{day}</span>
-                                    <button onClick={(e) => { e.stopPropagation(); handleRemoveDay(day); }} className={`p-1 rounded-md ${activeDay === day ? 'hover:bg-white/20' : 'hover:bg-red-100 hover:text-red-500'} transition-colors`}>
+                                    <button onClick={(e) => { e.stopPropagation(); handleRemoveDay(day); }} className={`p-1 rounded-md ml-2 md:ml-0 ${activeDay === day ? 'hover:bg-white/20' : 'hover:bg-red-100 hover:text-red-500'} transition-colors`}>
                                         <i className="fa-solid fa-xmark text-sm"></i>
                                     </button>
                                 </div>
@@ -757,14 +799,14 @@ const Timetable = ({ startTaskTimer }) => {
                         </div>
                     </div>
                 </div>
-                <div className="flex-1 w-full bg-white dark:bg-surfaceDark p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-700 min-h-[500px] shadow-sm">
+                <div className="flex-1 w-full bg-white dark:bg-surfaceDark p-4 sm:p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-700 min-h-[400px] shadow-sm">
                     {activeDay ? (
                         <>
-                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100 dark:border-slate-700">
-                                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{activeDay}'s Schedule</h3>
+                            <div className="flex items-center justify-between mb-6 md:mb-8 pb-4 border-b border-slate-100 dark:border-slate-700">
+                                <h3 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">{activeDay}'s Schedule</h3>
                                 <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-bold">{daySchedule.length} Tasks</span>
                             </div>
-                            <div className="space-y-4 mb-8">
+                            <div className="space-y-3 md:space-y-4 mb-6 md:mb-8">
                                 {daySchedule.length === 0 ? (
                                     <div className="text-center py-12 text-slate-400">
                                         <i className="fa-regular fa-calendar-check text-4xl mb-3 text-slate-300 dark:text-slate-600"></i>
@@ -772,18 +814,20 @@ const Timetable = ({ startTaskTimer }) => {
                                     </div>
                                 ) : (
                                     daySchedule.map(item => (
-                                        <div key={item.id} className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary/30 rounded-2xl transition-all shadow-sm hover:shadow-md">
-                                            <div className="flex items-start sm:items-center gap-4">
-                                                <div className="bg-primary/10 text-primary font-bold px-3 py-1.5 rounded-lg text-sm shrink-0 whitespace-nowrap">
-                                                    {item.startTime} - {item.endTime}
+                                        <div key={item.id} className="group flex flex-col md:flex-row md:items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary/30 rounded-2xl transition-all shadow-sm hover:shadow-md gap-3">
+                                            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 w-full">
+                                                <div className="bg-primary/10 text-primary font-bold px-3 py-1.5 rounded-lg text-sm shrink-0 whitespace-nowrap self-start md:self-auto flex items-center gap-2">
+                                                    <i className="fa-regular fa-clock"></i> {item.startTime} - {item.endTime}
                                                 </div>
-                                                <div className="font-semibold text-slate-700 dark:text-slate-200 mt-1 sm:mt-0">{item.task}</div>
+                                                <div className="font-semibold text-slate-700 dark:text-slate-200 w-full text-lg md:text-base">
+                                                    {item.task}
+                                                </div>
                                             </div>
-                                            <div className="flex gap-2 mt-3 sm:mt-0 sm:opacity-0 group-hover:opacity-100 self-end sm:self-auto">
-                                                <button onClick={() => startTaskTimer(item.task, calculateMinutes(item.startTime, item.endTime))} className="text-green-500 hover:text-green-600 transition-all p-2 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
-                                                    <i className="fa-solid fa-play"></i>
+                                            <div className="flex justify-end gap-2 md:opacity-0 group-hover:opacity-100 border-t md:border-t-0 border-slate-200 dark:border-slate-700 pt-3 md:pt-0">
+                                                <button onClick={() => startTaskTimer(item.task, calculateMinutes(item.startTime, item.endTime))} className="text-green-500 hover:text-green-600 transition-all px-4 md:px-2 py-2 bg-green-50 dark:bg-slate-700 hover:bg-green-100 rounded-xl border border-green-200 dark:border-slate-600 flex-1 md:flex-none flex items-center justify-center gap-2">
+                                                    <i className="fa-solid fa-play"></i> <span className="md:hidden font-bold">Start</span>
                                                 </button>
-                                                <button onClick={() => setSchedule(schedule.filter(s => s.id !== item.id))} className="text-slate-400 hover:text-red-500 transition-all p-2 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
+                                                <button onClick={() => setSchedule(schedule.filter(s => s.id !== item.id))} className="text-slate-400 hover:text-red-500 transition-all px-4 md:px-2 py-2 bg-white dark:bg-slate-700 hover:bg-red-50 rounded-xl border border-slate-200 dark:border-slate-600 flex items-center justify-center">
                                                     <i className="fa-solid fa-trash"></i>
                                                 </button>
                                             </div>
@@ -791,24 +835,33 @@ const Timetable = ({ startTaskTimer }) => {
                                     ))
                                 )}
                             </div>
-                            <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 md:p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
                                 <h4 className="font-bold text-slate-700 dark:text-slate-300 mb-3 text-sm flex items-center gap-2"><i className="fa-solid fa-clock text-primary"></i> Add New Task to {activeDay}</h4>
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <div className="flex gap-2">
-                                        <input title="Start Time" type="time" value={editForm.startTime} onChange={e => setEditForm({...editForm, startTime: e.target.value})} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 w-32 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
-                                        <input title="End Time" type="time" value={editForm.endTime} onChange={e => setEditForm({...editForm, endTime: e.target.value})} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 w-32 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                                <div className="flex flex-col md:flex-row gap-3">
+                                    <div className="grid grid-cols-2 md:flex gap-2 w-full md:w-auto">
+                                        <div className="flex flex-col">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 md:hidden">Start Time</label>
+                                            <input title="Start Time" type="time" value={editForm.startTime} onChange={e => setEditForm({...editForm, startTime: e.target.value})} className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-3 md:px-4 py-3 md:py-2.5 text-sm md:w-32 text-slate-700 dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 md:hidden">End Time</label>
+                                            <input title="End Time" type="time" value={editForm.endTime} onChange={e => setEditForm({...editForm, endTime: e.target.value})} className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-3 md:px-4 py-3 md:py-2.5 text-sm md:w-32 text-slate-700 dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                                        </div>
                                     </div>
-                                    <div className="flex-1 flex gap-2">
-                                        <input type="text" placeholder="What will you study?" value={editForm.task} onChange={e => setEditForm({...editForm, task: e.target.value})} onKeyDown={e => e.key === 'Enter' && handleAddTask()} className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
-                                        <button onClick={handleAddTask} className="bg-primary hover:bg-primaryDark text-white px-6 py-2.5 rounded-xl font-bold shadow-sm transition-colors whitespace-nowrap">Add Task</button>
+                                    <div className="flex flex-col flex-1">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 md:hidden">Task Details</label>
+                                        <input type="text" placeholder="Task Name..." value={editForm.task} onChange={e => setEditForm({...editForm, task: e.target.value})} onKeyDown={e => e.key === 'Enter' && handleAddTask()} className="w-full flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-3 md:py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
                                     </div>
+                                    <button onClick={handleAddTask} className="bg-primary hover:bg-green-600 text-white font-bold px-6 py-4 md:py-2.5 rounded-xl transition-all shadow-md active:scale-95 shrink-0 flex items-center justify-center gap-2 mt-2 md:mt-0">
+                                        <i className="fa-solid fa-plus"></i> <span className="md:hidden">Add Task</span><span className="hidden md:inline">Add</span>
+                                    </button>
                                 </div>
                             </div>
                         </>
                     ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                            <i className="fa-solid fa-calendar-day text-5xl mb-4 text-slate-300 dark:text-slate-600"></i>
-                            <p>Select or create a day from the sidebar to view its schedule.</p>
+                        <div className="flex items-center justify-center h-full text-slate-400 text-center flex-col py-20">
+                            <i className="fa-regular fa-calendar text-6xl mb-4 opacity-50"></i>
+                            <p>Select a day from the sidebar to view its schedule.</p>
                         </div>
                     )}
                 </div>
@@ -816,6 +869,7 @@ const Timetable = ({ startTaskTimer }) => {
         </div>
     );
 };
+
 
 
 const FactBook = ({ facts, setFacts }) => {
@@ -1465,7 +1519,7 @@ export default function App() {
             </div>
 
             <main className="flex-1 h-full flex flex-col relative w-full overflow-y-auto">
-                {currentView === 'dashboard' && <Dashboard selectedSubjects={selectedSubjects} completedTopics={completedTopics} openTimer={() => setTimerOpen(true)} dailyStreak={dailyStreak} />}
+                {currentView === 'dashboard' && <Dashboard selectedSubjects={selectedSubjects} completedTopics={completedTopics} openTimer={() => setTimerOpen(true)} dailyStreak={dailyStreak} user={user} />}
                 {currentView === 'syllabus' && <SyllabusTracker selectedSubjects={selectedSubjects} completedTopics={completedTopics} setCompletedTopics={setCompletedTopics} />}
                 {currentView === 'timetable' && <Timetable startTaskTimer={(task, mins) => { setTimerSettings({ active: true, time: mins * 60, task }); setTimerOpen(true); }} />}
                 {currentView === 'pastpapers' && <PastPapersView rootFolderId='1loejZdweyTir2QqtUKiHAAFOs5bRxfmz' selectedSubjects={selectedSubjects} />}
