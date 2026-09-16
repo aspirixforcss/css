@@ -246,7 +246,7 @@ const Sidebar = ({ currentView, setCurrentView, isDarkMode, toggleTheme, user })
     ];
 
     return (
-        <div className="w-72 bg-surfaceDark text-slate-300 h-full flex flex-col shadow-xl z-20 relative">
+        <div className="w-full bg-surfaceDark text-slate-300 h-full flex flex-col shadow-xl z-20 relative">
             <div className="p-6 flex items-center justify-between border-b border-slate-700/50">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
@@ -1106,6 +1106,7 @@ export default function App() {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [timerOpen, setTimerOpen] = useState(false);
     const [selectedSubjects, setSelectedSubjects] = useState([]);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     
     useEffect(() => {
         const saved = localStorage.getItem('selectedSubjects');
@@ -1274,8 +1275,30 @@ export default function App() {
     }} />;
 
     return (
-        <div className="flex h-screen w-full bg-bgLight dark:bg-bgDark font-sans overflow-hidden transition-colors">
-            <Sidebar currentView={currentView} setCurrentView={setCurrentView} isDarkMode={isDarkMode} toggleTheme={toggleTheme} user={user} />
+        <div className="flex flex-col md:flex-row h-screen w-full bg-bgLight dark:bg-bgDark font-sans overflow-hidden transition-colors">
+            {/* Mobile Header */}
+            <div className="md:hidden flex items-center justify-between p-4 bg-surfaceDark text-white shadow-md z-30">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                        <i className="fa-solid fa-graduation-cap text-white text-sm"></i>
+                    </div>
+                    <h1 className="text-lg font-extrabold text-white">CSS<span className="text-primaryLight">.</span>PREP</h1>
+                </div>
+                <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white">
+                    <i className={`fa-solid ${mobileMenuOpen ? 'fa-xmark' : 'fa-bars'} text-xl`}></i>
+                </button>
+            </div>
+            
+            {/* Overlay for mobile */}
+            {mobileMenuOpen && (
+                <div className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}></div>
+            )}
+
+            {/* Sidebar (Responsive) */}
+            <div className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <Sidebar currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setMobileMenuOpen(false); }} isDarkMode={isDarkMode} toggleTheme={toggleTheme} user={user} />
+            </div>
+
             <main className="flex-1 h-full flex flex-col relative w-full overflow-y-auto">
                 {currentView === 'dashboard' && <Dashboard selectedSubjects={selectedSubjects} completedTopics={completedTopics} openTimer={() => setTimerOpen(true)} dailyStreak={dailyStreak} />}
                 {currentView === 'syllabus' && <SyllabusTracker selectedSubjects={selectedSubjects} completedTopics={completedTopics} setCompletedTopics={setCompletedTopics} />}
