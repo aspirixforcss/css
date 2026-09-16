@@ -912,15 +912,21 @@ const VocabFlashcards = () => {
                 const API_KEY = 'AIzaSyBRb_sUPTEQDnHi223Kwld4JHKM-5K9000';
                 const FOLDER_ID = '1fiaZu0HaW-hcclXv5jx7gJG-z2bKwOgw';
                 
-                const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents+and+trashed=false&fields=files(id,name)&key=${API_KEY}`);
+                const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}`);
                 const searchData = await searchRes.json();
                 
                 if (searchData.error) throw new Error(searchData.error.message);
                 
-                const file = searchData.files.find(f => f.name.includes('GRE frequent words') || f.name.includes('.xlsx'));
+                const file = searchData.files.find(f => f.name.toLowerCase().includes('gre') || f.name.toLowerCase().includes('vocab') || f.mimeType === 'application/vnd.google-apps.spreadsheet' || f.name.includes('.xlsx'));
                 if (!file) throw new Error("Could not find 'GRE frequent words' Excel file in your Drive folder.");
 
-                const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=${API_KEY}`);
+                let fileUrl;
+                if (file.mimeType === 'application/vnd.google-apps.spreadsheet') {
+                    fileUrl = `https://www.googleapis.com/drive/v3/files/${file.id}/export?mimeType=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&key=${API_KEY}`;
+                } else {
+                    fileUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=${API_KEY}`;
+                }
+                const fileRes = await fetch(fileUrl);
                 if (!fileRes.ok) throw new Error("Failed to download file. Make sure the folder is shared as 'Anyone with the link'.");
                 
                 const arrayBuffer = await fileRes.arrayBuffer();
