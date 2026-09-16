@@ -5,6 +5,7 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
+import * as XLSX from 'xlsx';
 import { compulsorySubjects, optionalSubjects, syllabusData, sampleMcqs, sampleVocab } from './data';
 
 const LoginScreen = ({ onLogin }) => {
@@ -894,20 +895,84 @@ const TemplateView = ({ title, description, icon }) => (
 
 
 
+
 const VocabFlashcards = () => {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [flipped, setFlipped] = useState(false);
     const [deck, setDeck] = useState([]);
+    
+    const [liveVocab, setLiveVocab] = useState([]);
+    const [isFetchingExcel, setIsFetchingExcel] = useState(true);
+    const [excelError, setExcelError] = useState(null);
+
+    useEffect(() => {
+        const fetchExcel = async () => {
+            try {
+                const API_KEY = 'AIzaSyBRb_sUPTEQDnHi223Kwld4JHKM-5K9000';
+                const FOLDER_ID = '1fiaZu0HaW-hcclXv5jx7gJG-z2bKwOgw';
+                
+                const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents+and+trashed=false&fields=files(id,name)&key=${API_KEY}`);
+                const searchData = await searchRes.json();
+                
+                if (searchData.error) throw new Error(searchData.error.message);
+                
+                const file = searchData.files.find(f => f.name.includes('GRE frequent words') || f.name.includes('.xlsx'));
+                if (!file) throw new Error("Could not find 'GRE frequent words' Excel file in your Drive folder.");
+
+                const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=${API_KEY}`);
+                if (!fileRes.ok) throw new Error("Failed to download file. Make sure the folder is shared as 'Anyone with the link'.");
+                
+                const arrayBuffer = await fileRes.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                
+                let allVocab = [];
+                
+                workbook.SheetNames.forEach(sheetName => {
+                    const sheet = workbook.Sheets[sheetName];
+                    const data = XLSX.utils.sheet_to_json(sheet);
+                    
+                    data.forEach(row => {
+                        const word = row.Word || row.word || row.WORD || "";
+                        if (word.trim()) {
+                            const syn = row.Synonyms || row.synonyms || row.SYNONYMS || "";
+                            const ant = row.Antonyms || row.antonyms || row.ANTONYMS || "";
+                            allVocab.push({
+                                word: word.trim(),
+                                meaning: row.Meaning || row.meaning || row.MEANING || "No meaning provided",
+                                synonyms: syn ? syn.toString().split(',').map(s=>s.trim()).filter(Boolean) : [],
+                                antonyms: ant ? ant.toString().split(',').map(s=>s.trim()).filter(Boolean) : [],
+                                example: row.Example || row.example || row.EXAMPLE || "No example provided"
+                            });
+                        }
+                    });
+                });
+                
+                if (allVocab.length > 0) {
+                    setLiveVocab(allVocab);
+                } else {
+                    throw new Error("No valid words found in the Excel sheet columns (Ensure column is named 'Word').");
+                }
+            } catch (err) {
+                console.error("Excel fetch failed, using fallback:", err);
+                setExcelError(err.message);
+            } finally {
+                setIsFetchingExcel(false);
+            }
+        };
+        fetchExcel();
+    }, []);
+
+    const activeData = liveVocab.length > 0 ? liveVocab : sampleVocab;
 
     const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
 
     const handleStart = (category) => {
         let filtered = [];
         if (category === 'Random') {
-            filtered = [...sampleVocab].sort(() => 0.5 - Math.random());
+            filtered = [...activeData].sort(() => 0.5 - Math.random());
         } else {
-            filtered = sampleVocab.filter(v => v.word.toUpperCase().startsWith(category));
+            filtered = activeData.filter(v => v.word.toUpperCase().startsWith(category));
         }
         if (filtered.length > 0) {
             setDeck(filtered);
@@ -918,21 +983,35 @@ const VocabFlashcards = () => {
     };
 
     const getAvailableLetters = () => {
-        const available = new Set(sampleVocab.map(v => v.word.charAt(0).toUpperCase()));
+        const available = new Set(activeData.map(v => v.word.charAt(0).toUpperCase()));
         return available;
     };
     const availableLetters = getAvailableLetters();
+
+    if (isFetchingExcel) {
+        return (
+            <div className="max-w-6xl mx-auto p-4 md:p-8 flex flex-col items-center justify-center h-[70vh] animate-fade-in text-center">
+                <i className="fa-solid fa-cloud-arrow-down text-primary animate-bounce text-6xl mb-6"></i>
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Syncing Live Excel Data...</h2>
+                <p className="text-slate-500 mt-2">Connecting to your Google Drive folder...</p>
+            </div>
+        );
+    }
 
     if (!selectedCategory) {
         return (
             <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in w-full pb-32">
                 <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">Vocabulary Flashcards</h2>
-                <p className="text-slate-500 dark:text-slate-400 mb-8">Select a letter to master specific vocabulary, or choose Random for a mix.</p>
+                <div className="mb-8 p-4 rounded-xl border flex items-start gap-3 text-sm font-medium bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                    {liveVocab.length > 0 
+                        ? <><i className="fa-solid fa-circle-check text-green-500 text-lg mt-0.5"></i> <div>Live Synced from Excel: <strong className="text-green-600 dark:text-green-400">{liveVocab.length} words</strong> loaded!</div></>
+                        : <><i className="fa-solid fa-circle-exclamation text-amber-500 text-lg mt-0.5"></i> <div><strong>Excel Sync Failed:</strong> {excelError} <br/><span className="text-slate-400 font-normal">Using {sampleVocab.length} default words. (Did you change your Google Drive folder access to "Anyone with the link"?)</span></div></>}
+                </div>
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     <button 
                         onClick={() => handleStart('Random')}
-                        disabled={sampleVocab.length === 0}
+                        disabled={activeData.length === 0}
                         className="col-span-2 md:col-span-4 lg:col-span-6 p-4 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-3 disabled:opacity-50"
                     >
                         <i className="fa-solid fa-shuffle"></i> Start Random Mix
@@ -1027,6 +1106,7 @@ const VocabFlashcards = () => {
         </div>
     );
 };
+
 
 
 
