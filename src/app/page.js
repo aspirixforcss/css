@@ -1169,25 +1169,6 @@ export default function App() {
         return () => unsubscribe();
     }, []);
 
-    useEffect(() => {
-        if (!user || loadingAuth) return;
-        const syncData = async () => {
-            try {
-                const docRef = doc(db, 'users', user.uid);
-                await setDoc(docRef, {
-                    selectedSubjects,
-                    completedTopics,
-                    facts,
-                    dailyStreak,
-                    lastUpdate: new Date()
-                }, { merge: true });
-            } catch (err) {
-                console.error("Firestore Save Error:", err);
-            }
-        };
-        const timeout = setTimeout(syncData, 1000);
-        return () => clearTimeout(timeout);
-    }, [selectedSubjects, completedTopics, facts, dailyStreak, user, loadingAuth]);
 
 
     useEffect(() => {
@@ -1250,6 +1231,25 @@ export default function App() {
         }
     }, []);
 
+    useEffect(() => {
+        if (!user || loadingAuth) return;
+        const syncData = async () => {
+            try {
+                const docRef = doc(db, 'users', user.uid);
+                await setDoc(docRef, {
+                    selectedSubjects,
+                    completedTopics,
+                    facts,
+                    dailyStreak,
+                    lastUpdate: new Date()
+                }, { merge: true });
+            } catch (err) {
+                console.error("Firestore Save Error:", err);
+            }
+        };
+        const timeout = setTimeout(syncData, 1000);
+        return () => clearTimeout(timeout);
+    }, [selectedSubjects, completedTopics, facts, dailyStreak, user, loadingAuth]);
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
         if (typeof document !== 'undefined') {
