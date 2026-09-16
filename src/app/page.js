@@ -5,7 +5,7 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
-import { compulsorySubjects, optionalSubjects, syllabusData } from './data';
+import { compulsorySubjects, optionalSubjects, syllabusData, sampleMcqs, sampleVocab } from './data';
 
 const LoginScreen = ({ onLogin }) => {
     const handleGoogleLogin = async () => {
@@ -463,9 +463,32 @@ const PastPapersView = ({ rootFolderId, selectedSubjects }) => {    const [curre
                     <i className={`fa-solid fa-rotate-right ${loading ? 'animate-spin' : ''}`}></i> Sync Drive
                 </button>
             </div>
-            <div className="flex-1 bg-white dark:bg-surfaceDark rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm flex flex-col md:flex-row">
-                <div className="w-full md:w-1/4 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 flex flex-col bg-slate-50 dark:bg-slate-800/30">
-                    <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-surfaceDark flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+            
+            {selectedFile ? (
+                <div className="fixed inset-0 z-50 bg-slate-900/95 flex flex-col backdrop-blur-sm">
+                    <div className="p-4 flex justify-between items-center bg-slate-900 border-b border-slate-700 shadow-lg">
+                        <div className="flex items-center gap-4 text-white">
+                            <i className="fa-solid fa-file-pdf text-red-500 text-2xl"></i>
+                            <h3 className="font-bold text-lg">{selectedFile.name}</h3>
+                        </div>
+                        <button onClick={() => setSelectedFile(null)} className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors border border-slate-600 flex items-center gap-2">
+                            <i className="fa-solid fa-xmark"></i> Close PDF
+                        </button>
+                    </div>
+                    
+                    <div className="flex-1 relative w-full h-full bg-slate-100 overflow-hidden">
+                        {/* We use ?rm=minimal to remove Drive's top bar if possible, and scale the iframe to fully fit */}
+                        <iframe 
+                            src={`https://drive.google.com/file/d/${selectedFile.id}/preview?rm=minimal`} 
+                            className="absolute inset-0 w-full h-full border-0" 
+                            allow="autoplay"
+                            style={{ width: '100vw', height: 'calc(100vh - 70px)' }}
+                        ></iframe>
+                    </div>
+                </div>
+            ) : (
+                <div className="flex-1 bg-white dark:bg-surfaceDark rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm flex flex-col">
+                    <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30 flex items-center gap-2 overflow-x-auto whitespace-nowrap">
                         {folderHistory.map((fh, idx) => (
                             <div key={fh.id + '_' + idx} className="flex items-center">
                                 <button onClick={() => handleBreadcrumbClick(idx)} className={`text-sm hover:underline ${idx === folderHistory.length - 1 ? 'font-bold text-slate-800 dark:text-white' : 'text-primary'}`}>{fh.name}</button>
@@ -473,67 +496,56 @@ const PastPapersView = ({ rootFolderId, selectedSubjects }) => {    const [curre
                             </div>
                         ))}
                     </div>
-                    <div className="flex-1 overflow-y-auto p-2">
+                    <div className="flex-1 overflow-y-auto p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 bg-slate-50/50 dark:bg-slate-900/50">
                         {loading ? (
-                            <div className="flex justify-center items-center h-32"><i className="fa-solid fa-circle-notch fa-spin text-primary text-2xl"></i></div>
+                            <div className="col-span-full flex justify-center items-center h-48"><i className="fa-solid fa-circle-notch fa-spin text-primary text-3xl"></i></div>
                         ) : error ? (
-                            <div className="p-4 text-center"><i className="fa-solid fa-triangle-exclamation text-red-500 text-3xl mb-2"></i><p className="text-red-500 text-sm font-semibold">{error}</p></div>
+                            <div className="col-span-full p-8 text-center bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/30"><i className="fa-solid fa-triangle-exclamation text-red-500 text-4xl mb-3"></i><p className="text-red-600 font-semibold">{error}</p></div>
                         ) : files.length === 0 ? (
-                            <div className="p-8 text-center text-slate-500"><p>This folder is empty.</p></div>
+                            <div className="col-span-full p-12 text-center text-slate-500 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm"><i className="fa-solid fa-folder-open text-4xl mb-3 text-slate-300 dark:text-slate-600"></i><p>This folder is empty.</p></div>
                         ) : (
                             files.map(f => {
-            const isFolder = f.mimeType === 'application/vnd.google-apps.folder';
-            const isPdf = f.mimeType === 'application/pdf';
-            let allowed = true;
-            
-            if (isFolder) {
-                const fClean = stripStr(f.name);
-                const groupMatch = fClean.match(/group\s*(\d+)/);
-                
-                if (groupMatch) {
-                    const groupNum = parseInt(groupMatch[1], 10);
-                    allowed = selectedGroups.includes(groupNum);
-                } else {
-                    const matchesUnselected = unselectedSubjects.some(unsel => unsel.includes(fClean) || fClean.includes(unsel));
-                    const matchesSelected = activeSubjects.some(sel => sel.includes(fClean) || fClean.includes(sel));
-                    
-                    if (matchesUnselected && !matchesSelected) {
-                        allowed = false;
-                    }
-                }
-            }
+                                const isFolder = f.mimeType === 'application/vnd.google-apps.folder';
+                                const isPdf = f.mimeType === 'application/pdf';
+                                let allowed = true;
+                                
+                                if (isFolder) {
+                                    const fClean = stripStr(f.name);
+                                    const groupMatch = fClean.match(/group\s*(\d+)/);
+                                    
+                                    if (groupMatch) {
+                                        const groupNum = parseInt(groupMatch[1], 10);
+                                        allowed = selectedGroups.includes(groupNum);
+                                    } else {
+                                        const matchesUnselected = unselectedSubjects.some(unsel => unsel.includes(fClean) || fClean.includes(unsel));
+                                        const matchesSelected = activeSubjects.some(sel => sel.includes(fClean) || fClean.includes(sel));
+                                        
+                                        if (matchesUnselected && !matchesSelected) {
+                                            allowed = false;
+                                        }
+                                    }
+                                }
 
-            if (!allowed) {
-                return (
-                    <div key={f.id} className="flex items-center gap-3 p-3 rounded-xl transition-colors bg-red-50 dark:bg-red-900/10 text-red-300 dark:text-red-800 cursor-not-allowed opacity-50 select-none">
-                        <i className="fa-solid fa-folder text-red-300"></i>
-                        <span className="truncate text-sm line-through">{f.name}</span>
-                    </div>
-                );
-            }
+                                if (!allowed) {
+                                    return (
+                                        <div key={f.id} className="flex flex-col items-center justify-center p-6 rounded-2xl bg-red-50 dark:bg-red-900/10 text-red-300 dark:text-red-800 cursor-not-allowed opacity-50 border border-red-100 dark:border-red-900/20 text-center">
+                                            <i className="fa-solid fa-folder text-red-300 text-3xl mb-2"></i>
+                                            <span className="font-semibold text-sm line-through">{f.name}</span>
+                                        </div>
+                                    );
+                                }
 
-            return (
-                <div key={f.id} onClick={() => { if (isFolder) handleFolderClick(f); else if (isPdf) setSelectedFile(f); }} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${selectedFile?.id === f.id ? 'bg-primary/10 text-primary font-semibold' : 'hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>
-                    <i className={`fa-solid ${isFolder ? 'fa-folder text-yellow-500' : isPdf ? 'fa-file-pdf text-red-500' : 'fa-file text-slate-400'} text-lg`}></i>
-                    <span className="truncate text-sm">{f.name}</span>
-                </div>
-            );
-        })
+                                return (
+                                    <div key={f.id} onClick={() => { if (isFolder) handleFolderClick(f); else if (isPdf) setSelectedFile(f); }} className={`flex flex-col items-center justify-center p-6 rounded-2xl cursor-pointer transition-all border ${selectedFile?.id === f.id ? 'bg-primary/5 border-primary shadow-md' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-primary/50 hover:shadow-md text-slate-700 dark:text-slate-200'} text-center`}>
+                                        <i className={`fa-solid ${isFolder ? 'fa-folder text-yellow-400' : isPdf ? 'fa-file-pdf text-red-500' : 'fa-file text-slate-400'} text-4xl mb-3 transition-transform group-hover:scale-110`}></i>
+                                        <span className="font-bold text-sm leading-tight line-clamp-2">{f.name}</span>
+                                    </div>
+                                );
+                            })
                         )}
                     </div>
                 </div>
-                <div className="w-full md:w-3/4 bg-slate-100 dark:bg-slate-900 relative h-[70vh] md:h-auto">
-                    {selectedFile ? (
-                        <iframe src={`https://drive.google.com/file/d/${selectedFile.id}/preview`} className="w-full h-full border-0" allow="autoplay"></iframe>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                            <div className="w-24 h-24 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-sm mb-4"><i className="fa-solid fa-file-pdf text-4xl text-slate-300 dark:text-slate-600"></i></div>
-                            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Select a Paper</h3>
-                            <p className="text-slate-500 max-w-sm">Choose a PDF from the sidebar to read it directly within the app.</p>
-                        </div>
-                    )}
-                </div>
-            </div>
+            )}
         </div>
     );
 };
@@ -986,8 +998,8 @@ export default function App() {
                 {currentView === 'pastpapers' && <PastPapersView rootFolderId='1loejZdweyTir2QqtUKiHAAFOs5bRxfmz' selectedSubjects={selectedSubjects} />}
                 {currentView === 'factbook' && <FactBook facts={facts} setFacts={setFacts} />}
                 {currentView === 'currentaffairs' && <TemplateView title="Current Affairs Hot Topics" description="Deep-dive analysis on national security, regional dynamics, and global treaties." icon="fa-globe" />}
-                {currentView === 'mcqs' && <TemplateView title="Subject-Wise Practice MCQs" description="Test your preparation with comprehensive multiple-choice question sets." icon="fa-list-check" />}
-                {currentView === 'vocab' && <TemplateView title="English Vocabulary & Idioms MCQs" description="High-frequency GRE/CSS vocabulary builder with interactive quizzes." icon="fa-spell-check" />}
+                {currentView === 'mcqs' && <SubjectWiseMCQs selectedSubjects={selectedSubjects} />}
+                {currentView === 'vocab' && <VocabFlashcards />}
                 {currentView === 'flashcards' && <TemplateView title="Active Recall Flash Cards" description="Flip-card revision system for rapid memory retention." icon="fa-clone" />}
             </main>
             <CountdownTimerModal isOpen={timerOpen} onClose={() => setTimerOpen(false)} settings={timerSettings} />
