@@ -235,15 +235,14 @@ const OnboardingWizard = ({ onComplete }) => {
 
 const Sidebar = ({ currentView, setCurrentView, isDarkMode, toggleTheme, user, isPro }) => {
     const navItems = [
-        { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard' },
-        { id: 'syllabus', icon: 'fa-book-open', label: 'Syllabus Tracker' },
-        { id: 'timetable', icon: 'fa-calendar-days', label: 'Study Timetable' },
-        { id: 'pastpapers', icon: 'fa-file-lines', label: 'Past Papers' },
-        { id: 'factbook', icon: 'fa-book-bookmark', label: 'Fact Book' },
-        { id: 'currentaffairs', icon: 'fa-globe', label: 'Current Affairs Hot Topics' },
-        { id: 'mcqs', icon: 'fa-list-check', label: 'Subject MCQs' },
-        { id: 'vocab', icon: 'fa-spell-check', label: 'Vocab MCQs' },
-        { id: 'flashcards', icon: 'fa-clone', label: 'Flash Cards' },
+        { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard', premium: false },
+        { id: 'currentaffairs', icon: 'fa-globe', label: 'Current Affairs Hot Topics', premium: true },
+        { id: 'syllabus', icon: 'fa-book-open', label: 'Syllabus Tracker', premium: false },
+        { id: 'timetable', icon: 'fa-calendar-days', label: 'Study Timetable', premium: false },
+        { id: 'pastpapers', icon: 'fa-file-lines', label: 'Past Papers', premium: false }, // Past papers kept free!
+        { id: 'factbook', icon: 'fa-book-bookmark', label: 'Fact Book', premium: false },
+        { id: 'mcqs', icon: 'fa-list-check', label: 'Subject MCQs', premium: true },
+        { id: 'vocab', icon: 'fa-spell-check', label: 'Vocab MCQs', premium: false }, // Only D-Z locked
     ];
 
     return (
@@ -1690,7 +1689,7 @@ export default function App() {
             <main className="flex-1 h-full flex flex-col relative w-full overflow-y-auto">
                 {
                     (() => {
-                        const premiumViews = ['pastpapers', 'mcqs', 'currentaffairs'];
+                        const premiumViews = ['mcqs', 'currentaffairs'];
                         if (premiumViews.includes(currentView) && !isPro) return <PremiumUpgradeView />;
                         
                         switch (currentView) {
