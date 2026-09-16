@@ -11254,10 +11254,54 @@ export const sampleMcqs = {
     // To add more subjects, add their ID from data.js here as the key, e.g., 'comp_ca': [ ... ]
 };
 
-export const sampleVocab = [
-    { word: "Abate", meaning: "To become less active, less intense, or less in amount.", example: "As I began my speech, my feelings of nervousness quickly abated." },
-    { word: "Aberration", meaning: "Something that differs from the norm.", example: "In 1918, the Boston Red Sox won the World Series, but the success turned out to be an aberration." },
-    { word: "Cacophony", meaning: "A harsh, discordant mixture of sounds.", example: "A cacophony of deafening alarm bells." },
-    { word: "Ebullient", meaning: "Cheerful and full of energy.", example: "She sounded ebullient and happy." },
-    { word: "Facetious", meaning: "Treating serious issues with deliberately inappropriate humor.", example: "A facetious remark." }
+export const sampleVocab = [ 
+    { 
+        word: "Abate", 
+        meaning: "To become less active, less intense, or less in amount.", 
+        synonyms: ["Decrease", "Diminish", "Subside"], 
+        antonyms: ["Increase", "Intensify", "Aggravate"], 
+        example: "As I began my speech, my feelings of nervousness quickly abated." 
+    }, 
+    { 
+        word: "Aberration", 
+        meaning: "Something that differs from the norm.", 
+        synonyms: ["Anomaly", "Deviation", "Abnormality"], 
+        antonyms: ["Normality", "Regularity", "Standard"], 
+        example: "In 1918, the Boston Red Sox won the World Series, but the success turned out to be an aberration." 
+    }, 
+    { 
+        word: "Cacophony", 
+        meaning: "A harsh, discordant mixture of sounds.", 
+        synonyms: ["Clatter", "Uproar", "Noise"], 
+        antonyms: ["Harmony", "Silence", "Melody"], 
+        example: "The construction site produced a cacophony of deafening alarm bells and drills." 
+    }, 
+    { 
+        word: "Ebullient", 
+        meaning: "Cheerful and full of energy.", 
+        synonyms: ["Exuberant", "Joyful", "Buoyant"], 
+        antonyms: ["Depressed", "Apathetic", "Lethargic"], 
+        example: "She sounded ebullient and happy after hearing the good news." 
+    }, 
+    { 
+        word: "Facetious", 
+        meaning: "Treating serious issues with deliberately inappropriate humor.", 
+        synonyms: ["Flippant", "Playful", "Sarcastic"], 
+        antonyms: ["Serious", "Sincere", "Earnest"], 
+        example: "I didn't mean to be facetious when discussing the budget crisis." 
+    },
+    { 
+        word: "Benevolent", 
+        meaning: "Well meaning and kindly.", 
+        synonyms: ["Compassionate", "Generous", "Altruistic"], 
+        antonyms: ["Cruel", "Malevolent", "Selfish"], 
+        example: "The benevolent gentleman left a large sum of money to the orphanage." 
+    },
+    { 
+        word: "Zealous", 
+        meaning: "Showing great energy or enthusiasm in pursuit of a cause or an objective.", 
+        synonyms: ["Passionate", "Devoted", "Fervent"], 
+        antonyms: ["Apathetic", "Indifferent", "Unenthusiastic"], 
+        example: "He was a zealous advocate for environmental protection." 
+    }
 ];
