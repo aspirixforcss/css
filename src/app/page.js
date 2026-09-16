@@ -232,7 +232,7 @@ const OnboardingWizard = ({ onComplete }) => {
     );
 };
 
-const Sidebar = ({ currentView, setCurrentView, isDarkMode, toggleTheme }) => {
+const Sidebar = ({ currentView, setCurrentView, isDarkMode, toggleTheme, user }) => {
     const navItems = [
         { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard' },
         { id: 'syllabus', icon: 'fa-book-open', label: 'Syllabus Tracker' },
@@ -278,14 +278,17 @@ const Sidebar = ({ currentView, setCurrentView, isDarkMode, toggleTheme }) => {
 
             <div className="p-4 m-4 bg-slate-800/80 rounded-2xl border border-slate-700">
                 <div className="flex items-center gap-3">
-                    <img src="https://ui-avatars.com/api/?name=Ali+Khan&background=16a34a&color=fff&rounded=true" alt="Avatar" className="w-10 h-10 rounded-full" />
-                    <div>
-                        <div className="text-sm font-bold text-white">Ali Khan</div>
-                        <div className="text-[10px] text-green-400 flex items-center gap-1">
-                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div> Online Sync
+                    <img src={user?.photoURL || `https://ui-avatars.com/api/?name=${user?.displayName || 'User'}&background=16a34a&color=fff&rounded=true`} alt="Avatar" className="w-10 h-10 rounded-full" />
+                    <div className="overflow-hidden">
+                        <div className="text-sm font-bold text-white truncate">{user?.displayName || 'Aspirant'}</div>
+                        <div className="text-[10px] text-green-400 flex items-center gap-1 truncate">
+                            <i className="fa-solid fa-circle text-[8px]"></i> {user?.email || 'Logged In'}
                         </div>
                     </div>
                 </div>
+                <button onClick={() => signOut(auth)} className="w-full mt-4 py-2 bg-slate-700 hover:bg-red-500/20 text-slate-300 hover:text-red-400 text-xs font-bold rounded-lg transition-colors border border-slate-600">
+                    <i className="fa-solid fa-right-from-bracket mr-1"></i> Sign Out
+                </button>
             </div>
         </div>
     );
@@ -889,6 +892,212 @@ const TemplateView = ({ title, description, icon }) => (
     </div>
 );
 
+
+const VocabFlashcards = () => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [flipped, setFlipped] = useState(false);
+
+    const handleNext = () => {
+        setFlipped(false);
+        setCurrentIndex((prev) => (prev + 1) % sampleVocab.length);
+    };
+
+    const handlePrev = () => {
+        setFlipped(false);
+        setCurrentIndex((prev) => (prev - 1 + sampleVocab.length) % sampleVocab.length);
+    };
+
+    const card = sampleVocab[currentIndex];
+
+    return (
+        <div className="max-w-4xl mx-auto p-4 md:p-8 animate-fade-in w-full h-[85vh] flex flex-col">
+            <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">Vocabulary Flashcards</h2>
+            <p className="text-slate-500 dark:text-slate-400 mb-8">Master high-frequency vocabulary for English Precis & Composition. Click the card to flip.</p>
+            
+            <div className="flex-1 flex flex-col items-center justify-center mb-10">
+                <div 
+                    onClick={() => setFlipped(!flipped)}
+                    className="w-full max-w-lg aspect-video bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 transform hover:scale-[1.02]"
+                    style={{ perspective: '1000px' }}
+                >
+                    <div className={`w-full h-full flex flex-col items-center justify-center transition-opacity duration-300 ${flipped ? 'opacity-0 hidden' : 'opacity-100'}`}>
+                        <h3 className="text-4xl font-black text-primary mb-4">{card.word}</h3>
+                        <p className="text-slate-400 text-sm font-semibold uppercase tracking-widest"><i className="fa-solid fa-hand-pointer mr-2"></i>Tap to flip</p>
+                    </div>
+                    
+                    <div className={`w-full h-full flex flex-col items-center justify-center transition-opacity duration-300 ${!flipped ? 'opacity-0 hidden' : 'opacity-100'}`}>
+                        <h4 className="text-xl font-bold text-slate-800 dark:text-white mb-3">{card.meaning}</h4>
+                        <p className="text-slate-500 dark:text-slate-400 italic text-sm border-l-4 border-primary pl-4 text-left">"{card.example}"</p>
+                    </div>
+                </div>
+                
+                <div className="flex items-center gap-6 mt-8">
+                    <button onClick={handlePrev} className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white transition-colors flex items-center justify-center shadow-sm">
+                        <i className="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <span className="font-bold text-slate-500">{currentIndex + 1} / {sampleVocab.length}</span>
+                    <button onClick={handleNext} className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white transition-colors flex items-center justify-center shadow-sm">
+                        <i className="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 text-sm text-blue-800 dark:text-blue-300">
+                <i className="fa-solid fa-circle-info mr-2"></i> To add more flashcards, edit the <strong>sampleVocab</strong> array in <strong>src/app/data.js</strong>. Follow the existing format: <code>{"{"}word: "...", meaning: "...", example: "..."{"}"}</code>.
+            </div>
+        </div>
+    );
+};
+
+
+
+const SubjectWiseMCQs = ({ selectedSubjects }) => {
+    const [activeSubject, setActiveSubject] = useState(null);
+    const [quizStarted, setQuizStarted] = useState(false);
+    const [currentQ, setCurrentQ] = useState(0);
+    const [score, setScore] = useState(0);
+    const [showResult, setShowResult] = useState(false);
+    const [selectedOption, setSelectedOption] = useState(null);
+    const [showExplanation, setShowExplanation] = useState(false);
+
+    const activeSubs = [...compulsorySubjects, ...optionalSubjects]
+        .filter(s => s.id !== 'comp_essay' && (compulsorySubjects.some(c => c.id === s.id) || selectedSubjects.includes(s.id)));
+
+    const questions = activeSubject && sampleMcqs[activeSubject] ? sampleMcqs[activeSubject] : [];
+
+    const handleStart = (subId) => {
+        setActiveSubject(subId);
+        setQuizStarted(true);
+        setCurrentQ(0);
+        setScore(0);
+        setShowResult(false);
+        setSelectedOption(null);
+        setShowExplanation(false);
+    };
+
+    const handleAnswer = (idx) => {
+        if (selectedOption !== null) return;
+        setSelectedOption(idx);
+        if (idx === questions[currentQ].answer) setScore(s => s + 1);
+        setShowExplanation(true);
+    };
+
+    const handleNextQ = () => {
+        if (currentQ + 1 < questions.length) {
+            setCurrentQ(c => c + 1);
+            setSelectedOption(null);
+            setShowExplanation(false);
+        } else {
+            setShowResult(true);
+        }
+    };
+
+    if (!quizStarted) {
+        return (
+            <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in w-full pb-32">
+                <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">Subject-wise MCQs</h2>
+                <p className="text-slate-500 dark:text-slate-400 mb-8">Test your knowledge with up to 20 MCQs per quiz. Essay paper is excluded.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {activeSubs.map(sub => {
+                        const hasData = !!sampleMcqs[sub.id];
+                        return (
+                            <div key={sub.id} onClick={() => hasData && handleStart(sub.id)} className={`p-6 rounded-3xl border transition-all ${hasData ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-primary hover:shadow-md cursor-pointer' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800 opacity-60 cursor-not-allowed'}`}>
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${hasData ? 'bg-primary/10 text-primary' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
+                                    <i className="fa-solid fa-list-check text-xl"></i>
+                                </div>
+                                <h3 className="font-bold text-slate-800 dark:text-white mb-2">{sub.name}</h3>
+                                <p className="text-sm font-semibold text-slate-400 mb-4">{hasData ? `${sampleMcqs[sub.id].length} MCQs Available` : 'No MCQs Added Yet'}</p>
+                                {hasData ? (
+                                    <div className="text-primary font-bold text-sm flex items-center gap-2">Start Quiz <i className="fa-solid fa-arrow-right"></i></div>
+                                ) : (
+                                    <div className="text-slate-400 text-xs italic">Add to data.js to enable</div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+                <div className="mt-8 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-300">
+                    <i className="fa-solid fa-lightbulb mr-2"></i> To add MCQs for more subjects, open <strong>src/app/data.js</strong> and add questions into the <strong>sampleMcqs</strong> object using the subject's ID.
+                </div>
+            </div>
+        );
+    }
+
+    if (showResult) {
+        const percentage = Math.round((score / questions.length) * 100);
+        return (
+            <div className="max-w-3xl mx-auto p-4 md:p-8 animate-fade-in w-full text-center mt-10">
+                <div className="w-32 h-32 mx-auto bg-green-100 dark:bg-green-900/30 text-green-500 rounded-full flex items-center justify-center text-6xl mb-6">
+                    <i className="fa-solid fa-trophy"></i>
+                </div>
+                <h2 className="text-4xl font-extrabold text-slate-800 dark:text-white mb-2">Quiz Completed!</h2>
+                <p className="text-slate-500 text-lg mb-8">You scored {score} out of {questions.length} ({percentage}%)</p>
+                <div className="flex justify-center gap-4">
+                    <button onClick={() => setQuizStarted(false)} className="px-8 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-white font-bold rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                        Back to Subjects
+                    </button>
+                    <button onClick={() => handleStart(activeSubject)} className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors">
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    const q = questions[currentQ];
+
+    return (
+        <div className="max-w-4xl mx-auto p-4 md:p-8 animate-fade-in w-full">
+            <button onClick={() => setQuizStarted(false)} className="mb-6 text-slate-500 hover:text-primary font-bold flex items-center gap-2">
+                <i className="fa-solid fa-arrow-left"></i> Exit Quiz
+            </button>
+            
+            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
+                <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100 dark:border-slate-700">
+                    <div className="font-bold text-slate-500">Question {currentQ + 1} of {questions.length}</div>
+                    <div className="font-bold text-primary bg-primary/10 px-4 py-1.5 rounded-lg">Score: {score}</div>
+                </div>
+                
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-8 leading-relaxed">{q.q}</h3>
+                
+                <div className="space-y-4 mb-8">
+                    {q.options.map((opt, idx) => {
+                        let btnClass = "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-primary hover:bg-primary/5";
+                        
+                        if (selectedOption !== null) {
+                            if (idx === q.answer) btnClass = "bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-400";
+                            else if (idx === selectedOption) btnClass = "bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-400";
+                            else btnClass = "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-400 opacity-50";
+                        }
+                        
+                        return (
+                            <button 
+                                key={idx} 
+                                onClick={() => handleAnswer(idx)}
+                                disabled={selectedOption !== null}
+                                className={`w-full text-left p-4 rounded-2xl border-2 font-semibold transition-all ${btnClass}`}
+                            >
+                                <span className="inline-block w-8 h-8 rounded-lg bg-white dark:bg-slate-800 shadow-sm text-center leading-8 mr-4 text-slate-500">{String.fromCharCode(65 + idx)}</span>
+                                {opt}
+                            </button>
+                        );
+                    })}
+                </div>
+                
+                {showExplanation && (
+                    <div className="flex justify-end animate-fade-in">
+                        <button onClick={handleNextQ} className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors flex items-center gap-2">
+                            {currentQ + 1 < questions.length ? 'Next Question' : 'View Results'} <i className="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
 export default function App() {
     const [appState, setAppState] = useState('login');
     const [user, setUser] = useState(null);
@@ -905,6 +1114,81 @@ export default function App() {
             if (parsed.length > 0) setSelectedSubjects(parsed);
         }
     }, []);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            if (currentUser) {
+                setUser(currentUser);
+                try {
+                    const docRef = doc(db, 'users', currentUser.uid);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        
+                        let hasSubjects = false;
+                        if (data.selectedSubjects && data.selectedSubjects.length > 0) {
+                            setSelectedSubjects(data.selectedSubjects);
+                            hasSubjects = true;
+                        } else {
+                            const localSubj = localStorage.getItem('selectedSubjects');
+                            if (localSubj && JSON.parse(localSubj).length > 0) {
+                                setSelectedSubjects(JSON.parse(localSubj));
+                                hasSubjects = true;
+                            }
+                        }
+                        
+                        setAppState(hasSubjects ? 'main' : 'onboarding');
+
+                        if (data.completedTopics) setCompletedTopics(data.completedTopics);
+                        if (data.facts) setFacts(data.facts);
+                        if (data.dailyStreak) setDailyStreak(data.dailyStreak);
+                    } else {
+                        const localSubj = localStorage.getItem('selectedSubjects');
+                        if (localSubj && JSON.parse(localSubj).length > 0) {
+                            setSelectedSubjects(JSON.parse(localSubj));
+                            setAppState('main');
+                        }
+                        else setAppState('onboarding');
+                    }
+                } catch (err) {
+                    console.error("Firestore Load Error:", err);
+                    const localSubj = localStorage.getItem('selectedSubjects');
+                    if (localSubj && JSON.parse(localSubj).length > 0) {
+                        setSelectedSubjects(JSON.parse(localSubj));
+                        setAppState('main');
+                    }
+                    else setAppState('onboarding');
+                }
+                setLoadingAuth(false);
+            } else {
+                setUser(null);
+                setAppState('login');
+                setLoadingAuth(false);
+            }
+        });
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        if (!user || loadingAuth) return;
+        const syncData = async () => {
+            try {
+                const docRef = doc(db, 'users', user.uid);
+                await setDoc(docRef, {
+                    selectedSubjects,
+                    completedTopics,
+                    facts,
+                    dailyStreak,
+                    lastUpdate: new Date()
+                }, { merge: true });
+            } catch (err) {
+                console.error("Firestore Save Error:", err);
+            }
+        };
+        const timeout = setTimeout(syncData, 1000);
+        return () => clearTimeout(timeout);
+    }, [selectedSubjects, completedTopics, facts, dailyStreak, user, loadingAuth]);
+
 
     useEffect(() => {
         if (selectedSubjects.length > 0) {
@@ -973,7 +1257,8 @@ export default function App() {
         }
     };
 
-    if (appState === 'login') return <LoginScreen onLogin={() => setAppState('onboarding')} />;
+    if (loadingAuth) return <div className="min-h-screen flex items-center justify-center bg-bgLight dark:bg-bgDark"><i className="fa-solid fa-circle-notch fa-spin text-4xl text-primary"></i></div>;
+    if (appState === 'login') return <LoginScreen onLogin={(u) => setUser(u)} />;
     if (appState === 'onboarding') return <OnboardingWizard onComplete={async (s) => { 
         setSelectedSubjects(s); 
         setAppState('main');
@@ -990,7 +1275,7 @@ export default function App() {
 
     return (
         <div className="flex h-screen w-full bg-bgLight dark:bg-bgDark font-sans overflow-hidden transition-colors">
-            <Sidebar currentView={currentView} setCurrentView={setCurrentView} isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+            <Sidebar currentView={currentView} setCurrentView={setCurrentView} isDarkMode={isDarkMode} toggleTheme={toggleTheme} user={user} />
             <main className="flex-1 h-full flex flex-col relative w-full overflow-y-auto">
                 {currentView === 'dashboard' && <Dashboard selectedSubjects={selectedSubjects} completedTopics={completedTopics} openTimer={() => setTimerOpen(true)} dailyStreak={dailyStreak} />}
                 {currentView === 'syllabus' && <SyllabusTracker selectedSubjects={selectedSubjects} completedTopics={completedTopics} setCompletedTopics={setCompletedTopics} />}
