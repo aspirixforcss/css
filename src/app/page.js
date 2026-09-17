@@ -1628,6 +1628,7 @@ export default function App() {
     const [facts, setFacts] = useState([]);
     const [timerSettings, setTimerSettings] = useState({ active: false, time: 25 * 60, task: '' });
     const [dailyStreak, setDailyStreak] = useState(0);
+    const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, text: "" });
 
     useEffect(() => {
         const savedTopics = localStorage.getItem('completedTopics');
@@ -1776,6 +1777,25 @@ export default function App() {
                 onChangeSubjects={() => setAppState('onboarding')} 
                 onSignOut={() => signOut(auth)} 
             />
+            
+            {contextMenu.visible && (
+                <div 
+                    className="fixed z-[9999] bg-white dark:bg-slate-800 shadow-2xl rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in"
+                    style={{ top: Math.min(contextMenu.y, window.innerHeight - 50), left: Math.min(contextMenu.x, window.innerWidth - 180) }}
+                >
+                    <button 
+                        onClick={() => {
+                            setFacts([{ id: Date.now().toString(), title: "Snippet - " + new Date().toLocaleTimeString(), content: contextMenu.text, date: new Date().toLocaleDateString() }, ...facts]);
+                            setContextMenu({ visible: false, x: 0, y: 0, text: '' });
+                            alert("Added to Fact Book!");
+                        }}
+                        className="flex items-center gap-2 px-4 py-3 hover:bg-primary/10 hover:text-primary font-bold text-sm text-slate-700 dark:text-slate-200 transition-colors w-full text-left"
+                    >
+                        <i className="fa-solid fa-book-bookmark text-primary"></i>
+                        Add to Fact Book
+                    </button>
+                </div>
+            )}
             <CountdownTimerModal isOpen={timerOpen} onClose={() => setTimerOpen(false)} settings={timerSettings} />
         </div>
     );
