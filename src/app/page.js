@@ -255,11 +255,11 @@ const Sidebar = ({ currentView, setCurrentView, user, isPro, onOpenSettings }) =
     return (
         <div className="w-72 h-full bg-white dark:bg-surfaceDark border-r border-slate-200 dark:border-slate-800 flex flex-col transition-colors z-20 font-sans shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800/50">
-                <div className="relative flex items-center justify-center w-full mt-8 mb-8 h-16 cursor-pointer group transition-transform duration-300 hover:scale-105" onClick={() => setCurrentView('dashboard')}>
-                    <div className="absolute -top-7 -left-1 w-20 h-20 -rotate-45 z-10 group-hover:-rotate-12 transition-transform duration-500">
+                <div className="relative flex items-center justify-center w-full mt-6 mb-4 h-14 cursor-pointer group transition-transform duration-300 hover:scale-105" onClick={() => setCurrentView('dashboard')}>
+                    <div className="absolute -top-5 left-2 w-16 h-16 -rotate-45 z-10 group-hover:-rotate-12 transition-transform duration-500">
                         <div className="w-full h-full bg-gradient-to-br from-primaryLight via-primary to-primaryDark drop-shadow-2xl" style={{ WebkitMaskImage: `url(${aspirixCap})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixCap})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
                     </div>
-                    <div className="w-56 h-14 bg-slate-800 dark:bg-white drop-shadow-sm relative z-0 ml-4" style={{ WebkitMaskImage: `url(${aspirixText})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixText})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
+                    <div className="w-44 h-11 bg-slate-800 dark:bg-white drop-shadow-sm relative z-0 ml-4" style={{ WebkitMaskImage: `url(${aspirixText})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixText})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
                 </div>
             </div>
             
@@ -920,7 +920,7 @@ const FactBook = ({ facts, setFacts }) => {
             </div>
 
             {/* Filter Pills */}
-            <div className="flex overflow-x-auto pb-4 mb-6 gap-2 hide-scrollbar">
+            <div className="flex flex-wrap mb-8 gap-3">
                 <button 
                     onClick={() => setFilterTag('All')}
                     className={`px-5 py-2 rounded-full font-bold whitespace-nowrap transition-colors ${filterTag === 'All' ? 'bg-slate-800 dark:bg-white text-white dark:text-slate-900 shadow-md' : 'bg-white dark:bg-surfaceDark text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
