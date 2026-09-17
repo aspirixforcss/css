@@ -255,11 +255,11 @@ const Sidebar = ({ currentView, setCurrentView, user, isPro, onOpenSettings }) =
     return (
         <div className="w-72 h-full bg-white dark:bg-surfaceDark border-r border-slate-200 dark:border-slate-800 flex flex-col transition-colors z-20 font-sans shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800/50">
-                <div className="relative flex items-center justify-center w-full mt-6 mb-4 h-14 cursor-pointer group transition-transform duration-300 hover:scale-105" onClick={() => setCurrentView('dashboard')}>
-                    <div className="absolute -top-5 left-2 w-16 h-16 -rotate-45 z-10 group-hover:-rotate-12 transition-transform duration-500">
+                <div className="relative flex items-center justify-center w-full mt-8 mb-4 h-12 cursor-pointer group transition-transform duration-300 hover:scale-105" onClick={() => setCurrentView('dashboard')}>
+                    <div className="absolute -top-6 left-2 w-20 h-20 -rotate-45 z-10 group-hover:-rotate-12 transition-transform duration-500">
                         <div className="w-full h-full bg-gradient-to-br from-primaryLight via-primary to-primaryDark drop-shadow-2xl" style={{ WebkitMaskImage: `url(${aspirixCap})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixCap})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
                     </div>
-                    <div className="w-44 h-11 bg-slate-800 dark:bg-white drop-shadow-sm relative z-0 ml-4" style={{ WebkitMaskImage: `url(${aspirixText})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixText})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
+                    <div className="w-32 h-8 bg-slate-800 dark:bg-white drop-shadow-sm relative z-0 ml-28" style={{ WebkitMaskImage: `url(${aspirixText})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixText})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
                 </div>
             </div>
             
@@ -1164,16 +1164,16 @@ const VocabFlashcards = ({ isPro }) => {
                         ? <><i className="fa-solid fa-circle-check text-green-500 text-lg mt-0.5"></i> <div>Live Synced from Excel: <strong className="text-green-600 dark:text-green-400">{liveVocab.length} words</strong> loaded!</div>
 
                 {/* New GRE Copy */}
-                <div className="mt-6 mb-8 p-6 bg-gradient-to-br from-white to-slate-50 dark:from-surfaceDark dark:to-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden animate-fade-in">
+                <div className="mt-4 mb-6 p-4 max-w-4xl bg-gradient-to-br from-white to-slate-50 dark:from-surfaceDark dark:to-slate-900/80 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden animate-fade-in mx-auto">
                     <div className="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
-                    <div className="flex gap-4 items-start">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
-                            <i className="fa-solid fa-rocket text-primary text-lg"></i>
+                    <div className="flex gap-3 items-start">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i className="fa-solid fa-rocket text-primary text-sm"></i>
                         </div>
-                        <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed md:text-lg">
+                        <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed text-sm md:text-base">
                             These are the most important GRE words you need to know. <br/>
                             Every single word comes with <strong className="text-slate-900 dark:text-white">3 powerful synonyms</strong> and <strong className="text-slate-900 dark:text-white">3 strong antonyms</strong>. <br/>
-                            Master this list and you’ll multiply your vocabulary by at least <strong className="text-primary font-black text-xl">5×</strong> — turning just <span className="text-primary font-black">{liveVocab.length} words</span> into a massive 3000 plus words.
+                            Master this list and you’ll multiply your vocabulary by at least <strong className="text-primary font-black text-lg">5×</strong> — turning just <span className="text-primary font-black">{liveVocab.length} words</span> into a massive 3000 plus words.
                         </p>
                     </div>
                 </div>
@@ -1833,11 +1833,11 @@ const App = () => {
         <div className="flex flex-col md:flex-row h-screen w-full bg-bgLight dark:bg-bgDark font-sans overflow-hidden transition-colors">
             {/* Mobile Header */}
             <div className="md:hidden flex items-center justify-between p-4 bg-surfaceDark text-white shadow-md z-30">
-                <div className="relative flex items-center h-12 mt-2 pl-4 cursor-pointer group transition-transform duration-300 hover:scale-105" onClick={() => setCurrentView('dashboard')}>
-                    <div className="absolute -top-4 -left-2 w-14 h-14 -rotate-45 z-10 group-hover:-rotate-12 transition-transform duration-500">
+                <div className="relative flex items-center h-10 mt-2 pl-2 cursor-pointer group transition-transform duration-300 hover:scale-105" onClick={() => setCurrentView('dashboard')}>
+                    <div className="absolute -top-3 left-0 w-16 h-16 -rotate-45 z-10 group-hover:-rotate-12 transition-transform duration-500">
                         <div className="w-full h-full bg-gradient-to-br from-primaryLight via-primary to-primaryDark drop-shadow-2xl" style={{ WebkitMaskImage: `url(${aspirixCap})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixCap})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
                     </div>
-                    <div className="w-40 h-10 bg-white drop-shadow-sm relative z-0 ml-3" style={{ WebkitMaskImage: `url(${aspirixText})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixText})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
+                    <div className="w-28 h-7 bg-white drop-shadow-sm relative z-0 ml-20" style={{ WebkitMaskImage: `url(${aspirixText})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixText})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
                 </div>
                 <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white">
                     <i className={`fa-solid ${mobileMenuOpen ? 'fa-xmark' : 'fa-bars'} text-xl`}></i>
