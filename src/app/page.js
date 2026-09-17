@@ -1373,30 +1373,31 @@ const PremiumUpgradeView = () => (
 const CurrentAffairsView = () => {
     const [news, setNews] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeArticle, setActiveArticle] = useState(null);
 
     useEffect(() => {
         const fetchNews = async () => {
             try {
-                // Fetch Dawn News RSS via rss2json
                 const dawnRes = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.dawn.com/feeds/home/');
                 const dawnData = await dawnRes.json();
-                
-                // Fetch International News (Al Jazeera)
                 const intlRes = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.aljazeera.com/xml/rss/all.xml');
                 const intlData = await intlRes.json();
                 
-                let dawnItems = (dawnData.items || []).filter(i => (i.content || i.description) && i.title);
-                let intlItems = (intlData.items || []).filter(i => (i.content || i.description) && i.title);
-                
-                // Top editorial summary points
-                if (dawnItems.length > 0) {
-                    const top = dawnItems[0];
-                    const temp = document.createElement('div');
-                    temp.innerHTML = top.content || top.description || "";
-                    const text = temp.textContent || temp.innerText || "";
-                    const sentences = text.split('. ').filter(s => s.trim().length > 30).slice(0, 4);
-                    top.summaryPoints = sentences.map(s => s.trim() + (s.trim().endsWith('.') ? '' : '.'));
-                }
+                const dawnItems = dawnData.items || [];
+                const intlItems = intlData.items || [];
+
+                const parseSummary = (items) => {
+                    items.forEach(item => {
+                        const temp = document.createElement('div');
+                        temp.innerHTML = item.content || item.description || "";
+                        const text = temp.textContent || temp.innerText || "";
+                        const sentences = text.split('. ').filter(s => s.trim().length > 30);
+                        item.summaryPoints = sentences.map(s => s.trim() + (s.trim().endsWith('.') ? '' : '.'));
+                        item.fullText = text;
+                    });
+                };
+                parseSummary(dawnItems);
+                parseSummary(intlItems);
                 
                 setNews({ dawn: dawnItems, intl: intlItems });
             } catch (error) {
@@ -1415,8 +1416,8 @@ const CurrentAffairsView = () => {
         </div>
     );
 
-    const topArticle = news.dawn?.[0];
-    const nationalArticles = news.dawn?.slice(1, 10) || [];
+    const topArticle = activeArticle || news.dawn?.[0];
+    const nationalArticles = news.dawn?.slice(0, 10) || [];
     const internationalArticles = news.intl?.slice(0, 10) || [];
 
     return (
@@ -1439,30 +1440,19 @@ const CurrentAffairsView = () => {
                         <div className="flex flex-col items-center text-center mb-8 border-b border-slate-100 dark:border-slate-800 pb-8">
                             <div className="bg-primary/10 px-4 py-1.5 rounded-full inline-flex items-center gap-2 mb-4 border border-primary/20">
                                 <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>
-                                <span className="font-bold text-primary uppercase tracking-widest text-xs">Latest Dawn Editorial</span>
+                                <span className="font-bold text-primary uppercase tracking-widest text-xs">{activeArticle ? "Selected Article" : "Latest Dawn Editorial"}</span>
                             </div>
                             <h3 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white leading-tight font-serif">{topArticle.title}</h3>
                             <p className="text-slate-400 mt-4 font-medium uppercase tracking-widest text-sm">{new Date(topArticle.pubDate).toDateString()}</p>
                         </div>
                         
-                        <div className="columns-1 md:columns-2 gap-10 text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
-                            <div className="break-inside-avoid-column mb-6">
-                                <p className="text-lg md:text-xl font-serif italic border-l-4 border-primary pl-4 mb-6">This editorial summary was auto-generated to give you the most crucial points quickly.</p>
-                            </div>
-                            {topArticle.summaryPoints?.length > 0 ? topArticle.summaryPoints.map((point, idx) => (
-                                <p key={idx} className="mb-4 text-justify">
-                                    {idx === 0 ? <span className="float-left text-5xl font-black text-slate-900 dark:text-white pr-3 font-serif mt-2">{point.charAt(0)}</span> : null}
-                                    {idx === 0 ? point.substring(1) : point}
+                        <div className="columns-1 md:columns-2 gap-10 text-slate-700 dark:text-slate-300 font-medium leading-relaxed text-justify">
+                            {(topArticle.fullText || "").split('. ').filter(s => s.trim().length > 0).map((sentence, idx) => (
+                                <p key={idx} className="mb-4 break-inside-avoid-column">
+                                    {idx === 0 ? <span className="float-left text-5xl font-black text-slate-900 dark:text-white pr-3 font-serif mt-2">{sentence.charAt(0)}</span> : null}
+                                    {idx === 0 ? sentence.substring(1) + (sentence.endsWith('.') ? '' : '.') : sentence + (sentence.endsWith('.') ? '' : '.')}
                                 </p>
-                            )) : (
-                                <p>No summary available for this editorial.</p>
-                            )}
-                            
-                            <div className="mt-8 break-inside-avoid-column">
-                                <a href={topArticle.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3.5 rounded-xl font-bold hover:bg-primary dark:hover:bg-primary transition-colors shadow-md w-full justify-center">
-                                    Read Full Editorial <i className="fa-solid fa-arrow-up-right-from-square opacity-80"></i>
-                                </a>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -1540,119 +1530,56 @@ const SettingsModal = ({ isOpen, onClose, onChangeSubjects, onSignOut }) => {
 };
 
 
-export default function App() {
-    const [appState, setAppState] = useState('login');
+const App = () => {
     const [user, setUser] = useState(null);
-    const [isPro, setIsPro] = useState(false);
-    const [targetYear, setTargetYear] = useState(2027);
     const [loadingAuth, setLoadingAuth] = useState(true);
+    const [appState, setAppState] = useState('login');
+    const [targetYear, setTargetYear] = useState(2027);
+    const [selectedSubjects, setSelectedSubjects] = useState([]);
+    const [completedTopics, setCompletedTopics] = useState({});
     const [currentView, setCurrentView] = useState('dashboard');
     const [isDarkMode, setIsDarkMode] = useState(false);
-    const [timerOpen, setTimerOpen] = useState(false);
-    const [selectedSubjects, setSelectedSubjects] = useState([]);
+    const [isPro, setIsPro] = useState(true);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
     
-    useEffect(() => {
-        const saved = localStorage.getItem('selectedSubjects');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            if (parsed.length > 0) setSelectedSubjects(parsed);
-        }
-    }, []);
-
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-                try {
-                    const docRef = doc(db, 'users', currentUser.uid);
-                    const docSnap = await getDoc(docRef);
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        setIsPro(!!data.isPro);
-                        if (data.targetYear) setTargetYear(data.targetYear);
-                        
-                        let hasSubjects = false;
-                        if (data.selectedSubjects && data.selectedSubjects.length > 0) {
-                            setSelectedSubjects(data.selectedSubjects);
-                            hasSubjects = true;
-                        } else {
-                            const localSubj = localStorage.getItem('selectedSubjects');
-                            if (localSubj && JSON.parse(localSubj).length > 0) {
-                                setSelectedSubjects(JSON.parse(localSubj));
-                                hasSubjects = true;
-                            }
-                        }
-                        
-                        setAppState(hasSubjects ? 'main' : 'onboarding');
-
-                        if (data.completedTopics) setCompletedTopics(data.completedTopics);
-                        if (data.facts) setFacts(data.facts);
-                        if (data.dailyStreak) setDailyStreak(data.dailyStreak);
-                    } else {
-                        const localSubj = localStorage.getItem('selectedSubjects');
-                        if (localSubj && JSON.parse(localSubj).length > 0) {
-                            setSelectedSubjects(JSON.parse(localSubj));
-                            setAppState('main');
-                        }
-                        else setAppState('onboarding');
-                    }
-                } catch (err) {
-                    console.error("Firestore Load Error:", err);
-                    const localSubj = localStorage.getItem('selectedSubjects');
-                    if (localSubj && JSON.parse(localSubj).length > 0) {
-                        setSelectedSubjects(JSON.parse(localSubj));
-                        setAppState('main');
-                    }
-                    else setAppState('onboarding');
-                }
-                setLoadingAuth(false);
-            } else {
-                setUser(null);
-                setAppState('login');
-                setLoadingAuth(false);
-            }
-        });
-        return () => unsubscribe();
-    }, []);
-
-
-
-    useEffect(() => {
-        if (selectedSubjects.length > 0) {
-            localStorage.setItem('selectedSubjects', JSON.stringify(selectedSubjects));
-        }
-    }, [selectedSubjects]);
-    const [completedTopics, setCompletedTopics] = useState({});
-    const [facts, setFacts] = useState([]);
+    const [timerOpen, setTimerOpen] = useState(false);
     const [timerSettings, setTimerSettings] = useState({ active: false, time: 25 * 60, task: '' });
+    
+    const [facts, setFacts] = useState([]);
     const [dailyStreak, setDailyStreak] = useState(0);
-    const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, text: "" });
+    const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, text: '' });
 
     useEffect(() => {
-        const handleContextMenu = (e) => {
-            const selectedText = window.getSelection().toString().trim();
-            if (selectedText) {
-                e.preventDefault();
-                setContextMenu({ visible: true, x: e.clientX, y: e.clientY, text: selectedText });
+        const handleSelection = () => {
+            const selection = window.getSelection();
+            const text = selection.toString().trim();
+            if (text) {
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                setTooltip({
+                    visible: true,
+                    x: rect.left + (rect.width / 2),
+                    y: rect.top,
+                    text: text
+                });
             } else {
-                setContextMenu({ visible: false, x: 0, y: 0, text: '' });
+                setTooltip({ visible: false, x: 0, y: 0, text: '' });
             }
         };
-        const handleClick = () => setContextMenu({ visible: false, x: 0, y: 0, text: '' });
-        document.addEventListener('contextmenu', handleContextMenu);
-        document.addEventListener('click', handleClick);
+        
+        document.addEventListener('mouseup', handleSelection);
+        document.addEventListener('keyup', handleSelection);
         return () => {
-            document.removeEventListener('contextmenu', handleContextMenu);
-            document.removeEventListener('click', handleClick);
+            document.removeEventListener('mouseup', handleSelection);
+            document.removeEventListener('keyup', handleSelection);
         };
     }, []);
-
 
     useEffect(() => {
         const savedTopics = localStorage.getItem('completedTopics');
         if (savedTopics) setCompletedTopics(JSON.parse(savedTopics));
+        
         const savedFacts = localStorage.getItem('facts');
         if (savedFacts) setFacts(JSON.parse(savedFacts));
     }, []);
@@ -1701,6 +1628,41 @@ export default function App() {
     }, []);
 
     useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+            if (currentUser) {
+                setUser(currentUser);
+                try {
+                    const docRef = doc(db, 'users', currentUser.uid);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data.selectedSubjects && data.selectedSubjects.length > 0) {
+                            setSelectedSubjects(data.selectedSubjects);
+                            if (data.completedTopics) setCompletedTopics(data.completedTopics);
+                            if (data.facts) setFacts(data.facts);
+                            if (data.dailyStreak) setDailyStreak(data.dailyStreak);
+                            if (data.targetYear) setTargetYear(data.targetYear);
+                            setAppState('main');
+                        } else {
+                            setAppState('onboarding');
+                        }
+                    } else {
+                        setAppState('onboarding');
+                    }
+                } catch (err) {
+                    console.error("Firestore Load Error:", err);
+                    setAppState('onboarding');
+                }
+            } else {
+                setUser(null);
+                setAppState('login');
+            }
+            setLoadingAuth(false);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
         if (!user || loadingAuth) return;
         const syncData = async () => {
             try {
@@ -1710,6 +1672,7 @@ export default function App() {
                     completedTopics,
                     facts,
                     dailyStreak,
+                    targetYear,
                     lastUpdate: new Date()
                 }, { merge: true });
             } catch (err) {
@@ -1718,7 +1681,8 @@ export default function App() {
         };
         const timeout = setTimeout(syncData, 1000);
         return () => clearTimeout(timeout);
-    }, [selectedSubjects, completedTopics, facts, dailyStreak, user, loadingAuth]);
+    }, [selectedSubjects, completedTopics, facts, dailyStreak, targetYear, user, loadingAuth]);
+
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
         if (typeof document !== 'undefined') {
@@ -1751,7 +1715,7 @@ export default function App() {
                     <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
                         <div className="w-full h-full bg-gradient-to-br from-primaryLight via-primary to-primaryDark drop-shadow-xl transform transition-transform hover:scale-105 " style={{ WebkitMaskImage: `url(${aspirixCap})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixCap})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
                     </div>
-                    <div className="w-32 h-8 bg-white drop-shadow-sm dark:bg-white" style={{ WebkitMaskImage: `url(${aspirixText})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixText})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
+                    <div className="w-32 h-8 bg-slate-800 drop-shadow-sm dark:bg-white" style={{ WebkitMaskImage: `url(${aspirixText})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixText})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
                 </div>
                 <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white">
                     <i className={`fa-solid ${mobileMenuOpen ? 'fa-xmark' : 'fa-bars'} text-xl`}></i>
@@ -1797,26 +1761,24 @@ export default function App() {
                 onChangeSubjects={() => setAppState('onboarding')} 
                 onSignOut={() => signOut(auth)} 
             />
-            
-            {contextMenu.visible && (
+            {tooltip.visible && (
                 <div 
-                    className="fixed z-[9999] bg-white dark:bg-slate-800 shadow-2xl rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in"
-                    style={{ top: Math.min(contextMenu.y, window.innerHeight - 50), left: Math.min(contextMenu.x, window.innerWidth - 180) }}
+                    className="fixed z-[9999] bg-slate-900 text-white px-4 py-2 rounded-xl shadow-xl font-bold flex items-center gap-2 cursor-pointer hover:bg-primary transition-colors transform -translate-x-1/2 -translate-y-full"
+                    style={{ top: tooltip.y - 10, left: tooltip.x }}
+                    onMouseDown={(e) => {
+                        e.preventDefault(); 
+                        setFacts([{ id: Date.now().toString(), title: "Highlight - " + new Date().toLocaleTimeString(), content: tooltip.text, date: new Date().toLocaleDateString() }, ...facts]);
+                        setTooltip({ visible: false, x: 0, y: 0, text: '' });
+                        alert("Saved to Fact Book!");
+                    }}
                 >
-                    <button 
-                        onClick={() => {
-                            setFacts([{ id: Date.now().toString(), title: "Snippet - " + new Date().toLocaleTimeString(), content: contextMenu.text, date: new Date().toLocaleDateString() }, ...facts]);
-                            setContextMenu({ visible: false, x: 0, y: 0, text: '' });
-                            alert("Added to Fact Book!");
-                        }}
-                        className="flex items-center gap-2 px-4 py-3 hover:bg-primary/10 hover:text-primary font-bold text-sm text-slate-700 dark:text-slate-200 transition-colors w-full text-left"
-                    >
-                        <i className="fa-solid fa-book-bookmark text-primary"></i>
-                        Add to Fact Book
-                    </button>
+                    <i className="fa-solid fa-bookmark text-yellow-400"></i> Add to Fact Book
+                    <div className="absolute w-3 h-3 bg-slate-900 rotate-45 left-1/2 -bottom-1 transform -translate-x-1/2"></div>
                 </div>
             )}
             <CountdownTimerModal isOpen={timerOpen} onClose={() => setTimerOpen(false)} settings={timerSettings} />
         </div>
     );
 }
+
+export default App;
