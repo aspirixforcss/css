@@ -254,8 +254,8 @@ const Sidebar = ({ currentView, setCurrentView, user, isPro, onOpenSettings }) =
     
     return (
         <div className="w-72 h-full bg-white dark:bg-surfaceDark border-r border-slate-200 dark:border-slate-800 flex flex-col transition-colors z-20 font-sans shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800/50">
-                <div className="flex justify-center w-full mt-8 mb-6 cursor-pointer group transition-transform duration-300 hover:scale-105" onClick={() => setCurrentView('dashboard')}>
+            <div className="px-6 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800/50">
+                  <div className="flex justify-center w-full mt-2 mb-1 cursor-pointer group transition-transform duration-300 hover:scale-105" onClick={() => setCurrentView('dashboard')}>
                     <div className="relative flex items-center pl-12">
                         <div className="absolute -top-6 left-0 w-20 h-20 -rotate-45 z-10 group-hover:-rotate-12 transition-transform duration-500">
                             <div className="w-full h-full bg-gradient-to-br from-primaryLight via-primary to-primaryDark drop-shadow-2xl" style={{ WebkitMaskImage: `url(${aspirixCap})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixCap})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
