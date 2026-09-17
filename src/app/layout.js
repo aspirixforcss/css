@@ -1,7 +1,7 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'CSS Prep Pro - Platform Prototype',
+  title: 'ASPIRIX FOR CSS - Platform Prototype',
   description: 'Your Ultimate FPSC Journey Starts Here.',
 }
 
