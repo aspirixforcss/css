@@ -255,11 +255,11 @@ const Sidebar = ({ currentView, setCurrentView, user, isPro, onOpenSettings }) =
     return (
         <div className="w-72 h-full bg-white dark:bg-surfaceDark border-r border-slate-200 dark:border-slate-800 flex flex-col transition-colors z-20 font-sans shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800/50">
-                <div className="relative flex items-center justify-center w-full mt-4 mb-2 h-14 cursor-pointer" onClick={() => setCurrentView('dashboard')}>
-                    <div className="absolute -top-4 -left-2 w-14 h-14 -rotate-45 z-10">
-                        <div className="w-full h-full bg-gradient-to-br from-primaryLight via-primary to-primaryDark drop-shadow-lg" style={{ WebkitMaskImage: `url(${aspirixCap})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixCap})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
+                <div className="relative flex items-center justify-center w-full mt-6 mb-4 h-16 cursor-pointer group transition-transform duration-300 hover:scale-105" onClick={() => setCurrentView('dashboard')}>
+                    <div className="absolute -top-6 -left-3 w-16 h-16 -rotate-45 z-10 group-hover:-rotate-12 transition-transform duration-500">
+                        <div className="w-full h-full bg-gradient-to-br from-primaryLight via-primary to-primaryDark drop-shadow-2xl" style={{ WebkitMaskImage: `url(${aspirixCap})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixCap})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
                     </div>
-                    <div className="w-48 h-10 bg-slate-800 dark:bg-white drop-shadow-sm relative z-0 ml-4" style={{ WebkitMaskImage: `url(${aspirixText})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixText})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
+                    <div className="w-52 h-12 bg-slate-800 dark:bg-white drop-shadow-sm relative z-0 ml-4" style={{ WebkitMaskImage: `url(${aspirixText})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixText})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
                 </div>
             </div>
             
@@ -1173,7 +1173,7 @@ const VocabFlashcards = ({ isPro }) => {
                         <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed md:text-lg">
                             These are the most important GRE words you need to know. <br/>
                             Every single word comes with <strong className="text-slate-900 dark:text-white">3 powerful synonyms</strong> and <strong className="text-slate-900 dark:text-white">3 strong antonyms</strong>. <br/>
-                            Master this list and you’ll multiply your vocabulary by at least <strong className="text-primary font-black text-xl">5×</strong> — turning just <span className="text-primary font-black">{liveVocab.length} words</span> into a massive edge on test day.
+                            Master this list and you’ll multiply your vocabulary by at least <strong className="text-primary font-black text-xl">5×</strong> — turning just <span className="text-primary font-black">{liveVocab.length} words</span> into a massive 3000 plus words.
                         </p>
                     </div>
                 </div>
@@ -1658,6 +1658,11 @@ const App = () => {
 
 
     useEffect(() => {
+        if (currentView !== 'currentaffairs' && currentView !== 'pastpapers') {
+            setTooltip({ visible: false, x: 0, y: 0, text: '' });
+            return;
+        }
+
         const handleSelection = () => {
             const selection = window.getSelection();
             const text = selection.toString().trim();
@@ -1681,7 +1686,7 @@ const App = () => {
             document.removeEventListener('mouseup', handleSelection);
             document.removeEventListener('keyup', handleSelection);
         };
-    }, []);
+    }, [currentView]);
 
     useEffect(() => {
         const savedTopics = localStorage.getItem('completedTopics');
@@ -1828,11 +1833,11 @@ const App = () => {
         <div className="flex flex-col md:flex-row h-screen w-full bg-bgLight dark:bg-bgDark font-sans overflow-hidden transition-colors">
             {/* Mobile Header */}
             <div className="md:hidden flex items-center justify-between p-4 bg-surfaceDark text-white shadow-md z-30">
-                <div className="relative flex items-center h-10 mt-2 pl-4">
-                    <div className="absolute -top-3 -left-1 w-10 h-10 -rotate-45 z-10">
-                        <div className="w-full h-full bg-gradient-to-br from-primaryLight via-primary to-primaryDark drop-shadow-lg" style={{ WebkitMaskImage: `url(${aspirixCap})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixCap})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
+                <div className="relative flex items-center h-12 mt-2 pl-4 cursor-pointer group transition-transform duration-300 hover:scale-105" onClick={() => setCurrentView('dashboard')}>
+                    <div className="absolute -top-4 -left-2 w-14 h-14 -rotate-45 z-10 group-hover:-rotate-12 transition-transform duration-500">
+                        <div className="w-full h-full bg-gradient-to-br from-primaryLight via-primary to-primaryDark drop-shadow-2xl" style={{ WebkitMaskImage: `url(${aspirixCap})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixCap})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
                     </div>
-                    <div className="w-32 h-8 bg-white drop-shadow-sm relative z-0 ml-2" style={{ WebkitMaskImage: `url(${aspirixText})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixText})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
+                    <div className="w-40 h-10 bg-white drop-shadow-sm relative z-0 ml-3" style={{ WebkitMaskImage: `url(${aspirixText})`, WebkitMaskSize: 'contain', WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskImage: `url(${aspirixText})`, maskSize: 'contain', maskRepeat: 'no-repeat', maskPosition: 'center' }} />
                 </div>
                 <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white">
                     <i className={`fa-solid ${mobileMenuOpen ? 'fa-xmark' : 'fa-bars'} text-xl`}></i>
