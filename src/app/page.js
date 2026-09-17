@@ -1475,13 +1475,13 @@ const CurrentAffairsView = () => {
                     <h3 className="font-extrabold text-xl text-slate-800 dark:text-white mb-6 flex items-center gap-2 pb-4 border-b border-slate-100 dark:border-slate-800"><i className="fa-solid fa-flag text-green-600"></i> National Important Articles</h3>
                     <div className="space-y-4">
                         {nationalArticles.map((article, idx) => (
-                            <a key={idx} href={article.link} target="_blank" rel="noreferrer" className="group flex gap-4 items-start p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <button key={idx} onClick={() => { setActiveArticle(article); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="w-full text-left group flex gap-4 items-start p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                 <span className="font-black text-2xl text-slate-200 dark:text-slate-700 group-hover:text-primary transition-colors">{idx + 1}</span>
                                 <div>
                                     <h4 className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors text-sm leading-snug line-clamp-2">{article.title}</h4>
                                     <p className="text-xs text-slate-400 mt-2 font-medium">{new Date(article.pubDate).toLocaleDateString()}</p>
                                 </div>
-                            </a>
+                            </button>
                         ))}
                     </div>
                 </div>
@@ -1491,13 +1491,13 @@ const CurrentAffairsView = () => {
                     <h3 className="font-extrabold text-xl text-slate-800 dark:text-white mb-6 flex items-center gap-2 pb-4 border-b border-slate-100 dark:border-slate-800"><i className="fa-solid fa-globe text-blue-500"></i> International Articles</h3>
                     <div className="space-y-4">
                         {internationalArticles.map((article, idx) => (
-                            <a key={idx} href={article.link} target="_blank" rel="noreferrer" className="group flex gap-4 items-start p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <button key={idx} onClick={() => { setActiveArticle(article); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="w-full text-left group flex gap-4 items-start p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                 <span className="font-black text-2xl text-slate-200 dark:text-slate-700 group-hover:text-primary transition-colors">{idx + 1}</span>
                                 <div>
                                     <h4 className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors text-sm leading-snug line-clamp-2">{article.title}</h4>
                                     <p className="text-xs text-slate-400 mt-2 font-medium">{new Date(article.pubDate).toLocaleDateString()}</p>
                                 </div>
-                            </a>
+                            </button>
                         ))}
                     </div>
                 </div>
@@ -1629,6 +1629,26 @@ export default function App() {
     const [timerSettings, setTimerSettings] = useState({ active: false, time: 25 * 60, task: '' });
     const [dailyStreak, setDailyStreak] = useState(0);
     const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, text: "" });
+
+    useEffect(() => {
+        const handleContextMenu = (e) => {
+            const selectedText = window.getSelection().toString().trim();
+            if (selectedText) {
+                e.preventDefault();
+                setContextMenu({ visible: true, x: e.clientX, y: e.clientY, text: selectedText });
+            } else {
+                setContextMenu({ visible: false, x: 0, y: 0, text: '' });
+            }
+        };
+        const handleClick = () => setContextMenu({ visible: false, x: 0, y: 0, text: '' });
+        document.addEventListener('contextmenu', handleContextMenu);
+        document.addEventListener('click', handleClick);
+        return () => {
+            document.removeEventListener('contextmenu', handleContextMenu);
+            document.removeEventListener('click', handleClick);
+        };
+    }, []);
+
 
     useEffect(() => {
         const savedTopics = localStorage.getItem('completedTopics');
