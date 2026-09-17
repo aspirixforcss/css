@@ -1833,7 +1833,7 @@ const App = () => {
     }, []);
 
     useEffect(() => {
-        if (!user || loadingAuth) return;
+        if (!user || loadingAuth || appState !== 'main') return;
         const syncData = async () => {
             try {
                 const docRef = doc(db, 'users', user.uid);
@@ -1851,7 +1851,7 @@ const App = () => {
         };
         const timeout = setTimeout(syncData, 1000);
         return () => clearTimeout(timeout);
-    }, [selectedSubjects, completedTopics, facts, dailyStreak, targetYear, user, loadingAuth]);
+    }, [selectedSubjects, completedTopics, facts, dailyStreak, targetYear, user, loadingAuth, appState]);
 
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
