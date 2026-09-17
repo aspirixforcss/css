@@ -1161,7 +1161,23 @@ const VocabFlashcards = ({ isPro }) => {
                 <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">Vocabulary Flashcards</h2>
                 <div className="mb-8 p-4 rounded-xl border flex items-start gap-3 text-sm font-medium bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
                     {liveVocab.length > 0 
-                        ? <><i className="fa-solid fa-circle-check text-green-500 text-lg mt-0.5"></i> <div>Live Synced from Excel: <strong className="text-green-600 dark:text-green-400">{liveVocab.length} words</strong> loaded!</div></>
+                        ? <><i className="fa-solid fa-circle-check text-green-500 text-lg mt-0.5"></i> <div>Live Synced from Excel: <strong className="text-green-600 dark:text-green-400">{liveVocab.length} words</strong> loaded!</div>
+
+                {/* New GRE Copy */}
+                <div className="mt-6 mb-8 p-6 bg-gradient-to-br from-white to-slate-50 dark:from-surfaceDark dark:to-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden animate-fade-in">
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
+                    <div className="flex gap-4 items-start">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                            <i className="fa-solid fa-rocket text-primary text-lg"></i>
+                        </div>
+                        <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed md:text-lg">
+                            These are the most important GRE words you need to know. <br/>
+                            Every single word comes with <strong className="text-slate-900 dark:text-white">3 powerful synonyms</strong> and <strong className="text-slate-900 dark:text-white">3 strong antonyms</strong>. <br/>
+                            Master this list and you’ll multiply your vocabulary by at least <strong className="text-primary font-black text-xl">5×</strong> — turning just <span className="text-primary font-black">{liveVocab.length} words</span> into a massive edge on test day.
+                        </p>
+                    </div>
+                </div>
+</>
                         : <><i className="fa-solid fa-circle-exclamation text-amber-500 text-lg mt-0.5"></i> <div><strong>Excel Sync Failed:</strong> {excelError} <br/><span className="text-slate-400 font-normal">Using {sampleVocab.length} default words. (Did you change your Google Drive folder access to "Anyone with the link"?)</span></div></>}
                 </div>
                 
