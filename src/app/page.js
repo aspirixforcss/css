@@ -1528,6 +1528,7 @@ export default function App() {
     const [appState, setAppState] = useState('login');
     const [user, setUser] = useState(null);
     const [isPro, setIsPro] = useState(false);
+    const [targetYear, setTargetYear] = useState(2027);
     const [loadingAuth, setLoadingAuth] = useState(true);
     const [currentView, setCurrentView] = useState('dashboard');
     const [isDarkMode, setIsDarkMode] = useState(false);
