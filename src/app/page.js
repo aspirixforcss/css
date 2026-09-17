@@ -25,10 +25,10 @@ const LoginScreen = ({ onLogin }) => {
           <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style={{animationDelay: '2s'}}></div>
           
           <div className="max-w-md w-full glass dark:bg-surfaceDark/80 p-8 rounded-3xl shadow-2xl border border-white/20 dark:border-slate-700 relative z-10 animate-fade-in text-center">
-              <div className="w-28 h-28 mx-auto flex items-center justify-center mb-6">
-                  <img src="/logo-icon.png" alt="Aspirix Logo" className="w-full h-full object-contain dark:invert" />
+              <div className="w-20 h-20 mx-auto flex items-center justify-center mb-4">
+                  <img src="/logo-icon.png" alt="Aspirix Logo" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-screen dark:invert" />
               </div>
-              <img src="/logo-text.png" alt="ASPIRIX FOR CSS" className="h-8 md:h-10 mx-auto mb-6 dark:invert" />
+              <img src="/logo-text.png" alt="ASPIRIX FOR CSS" className="h-6 md:h-8 mx-auto mb-8 object-contain mix-blend-multiply dark:mix-blend-screen dark:invert" />
               <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium">Your Ultimate FPSC Journey Starts Here.</p>
               
               <button 
@@ -249,8 +249,8 @@ const Sidebar = ({ currentView, setCurrentView, isDarkMode, toggleTheme, user, i
         <div className="w-full bg-surfaceDark text-slate-300 h-full flex flex-col shadow-xl z-20 relative">
             <div className="p-6 flex items-center justify-between border-b border-slate-700/50">
                 <div className="flex items-center gap-3">
-                    <img src="/logo-icon.png" alt="Aspirix" className="w-10 h-10 object-contain invert brightness-0" />
-                    <img src="/logo-text.png" alt="ASPIRIX" className="h-6 object-contain invert brightness-0" />
+                    <img src="/logo-icon.png" alt="Aspirix" className="w-8 h-8 object-contain invert mix-blend-screen opacity-90" />
+                    <img src="/logo-text.png" alt="ASPIRIX" className="h-5 object-contain invert mix-blend-screen opacity-90" />
                 </div>
                 <button onClick={toggleTheme} className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white">
                     <i className={`fa-solid ${isDarkMode ? 'fa-sun' : 'fa-moon'}`}></i>
@@ -1664,8 +1664,8 @@ export default function App() {
             {/* Mobile Header */}
             <div className="md:hidden flex items-center justify-between p-4 bg-surfaceDark text-white shadow-md z-30">
                 <div className="flex items-center gap-2">
-                    <img src="/logo-icon.png" alt="Aspirix" className="w-8 h-8 object-contain invert brightness-0" />
-                    <img src="/logo-text.png" alt="ASPIRIX" className="h-5 object-contain invert brightness-0" />
+                    <img src="/logo-icon.png" alt="Aspirix" className="w-7 h-7 object-contain invert mix-blend-screen opacity-90" />
+                    <img src="/logo-text.png" alt="ASPIRIX" className="h-4 object-contain invert mix-blend-screen opacity-90" />
                 </div>
                 <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white">
                     <i className={`fa-solid ${mobileMenuOpen ? 'fa-xmark' : 'fa-bars'} text-xl`}></i>
