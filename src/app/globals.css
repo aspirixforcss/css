@@ -2,9 +2,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #16a34a;
-  --color-primaryDark: #15803d;
-  --color-primaryLight: #4ade80;
+  --color-primary: #475569; /* Slate 600 */
+  --color-primaryDark: #334155; /* Slate 700 */
+  --color-primaryLight: #94a3b8; /* Slate 400 */
   --color-bgLight: #f8fafc;
   --color-bgDark: #0f172a;
   --color-surfaceLight: #ffffff;
