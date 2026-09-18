@@ -1536,7 +1536,8 @@ const PremiumUpgradeView = ({ onUpgrade, user }) => {
                 }
             } else {
                 // 2. Call Gumroad API via CORS Proxy
-                const targetUrl = 'https://api.gumroad.com/v2/licenses/verify';
+                // Put everything in the URL so public proxies don't strip them
+                const targetUrl = `https://api.gumroad.com/v2/licenses/verify?product_id=atDQnyJo_kNLN4DMI4LwOg%3D%3D&license_key=${encodeURIComponent(key)}&increment_uses_count=true`;
                 const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
                 
                 const res = await fetch(proxyUrl, {
