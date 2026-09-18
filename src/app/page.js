@@ -458,7 +458,7 @@ const Dashboard = ({ setCurrentView, targetYear, selectedSubjects, completedTopi
                 </div>
                 <div className="overflow-hidden flex-1 relative flex items-center h-full">
                     <marquee className="font-medium text-slate-700 dark:text-slate-300 py-3" scrollamount="6">
-                        🚨 <span className="font-bold text-red-500">MPT CSS {targetYear} Exam is on October {targetYear}</span> 🚨 &nbsp;&nbsp;|&nbsp;&nbsp; {news.length > 0 ? news.join('  •  ') : 'Loading Dawn News...'}
+                        🚨 <span className="font-bold text-red-500">MPT CSS {targetYear} Exam is on October {targetYear - 1}</span> 🚨 &nbsp;&nbsp;|&nbsp;&nbsp; {news.length > 0 ? news.join('  •  ') : 'Loading Dawn News...'}
                     </marquee>
                 </div>
             </div>
