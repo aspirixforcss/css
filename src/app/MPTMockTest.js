@@ -16,22 +16,6 @@ const MPTMockTest = ({ isPro }) => {
             try {
                 // Data loaded directly via import
                 
-                // Group by subjects
-                const grouped = {
-                    'Islamic Studies / Civics & Ethics': [],
-                    'Urdu': [],
-                    'English': [],
-                    'General Abilities': [],
-                    'General Knowledge': []
-                };
-
-                rawData.forEach(q => {
-                    const sub = q['Subject'];
-                    if (grouped[sub]) {
-                        grouped[sub].push(q);
-                    }
-                });
-
                 // Shuffle helper
                 const shuffle = (array) => {
                     let currentIndex = array.length, randomIndex;
@@ -43,7 +27,46 @@ const MPTMockTest = ({ isPro }) => {
                     return array;
                 };
 
-                // Select quotas
+                // Group by blocks to keep reading comprehension passages together
+                let blocks = [];
+                let currentBlockKey = null;
+                let currentBlock = [];
+
+                rawData.forEach((q, idx) => {
+                    let blockKey = 'standalone_' + idx;
+                    if (q.Subject === 'English') {
+                        const match = q.Question.match(/\[Passage \d\]/);
+                        if (match) {
+                            blockKey = q['Question Bank Source'] + '_' + match[0];
+                        }
+                    }
+                    
+                    if (blockKey === currentBlockKey) {
+                        currentBlock.push(q);
+                    } else {
+                        if (currentBlock.length > 0) blocks.push(currentBlock);
+                        currentBlockKey = blockKey;
+                        currentBlock = [q];
+                    }
+                });
+                if (currentBlock.length > 0) blocks.push(currentBlock);
+
+                // Group blocks by subject
+                const subjectBlocks = {
+                    'Islamic Studies / Civics & Ethics': [],
+                    'Urdu': [],
+                    'English': [],
+                    'General Abilities': [],
+                    'General Knowledge': []
+                };
+
+                blocks.forEach(block => {
+                    const sub = block[0].Subject;
+                    if (subjectBlocks[sub]) {
+                        subjectBlocks[sub].push(block);
+                    }
+                });
+
                 const quotas = {
                     'Islamic Studies / Civics & Ethics': 20,
                     'Urdu': 20,
@@ -52,14 +75,28 @@ const MPTMockTest = ({ isPro }) => {
                     'General Knowledge': 50
                 };
 
-                let selectedQs = [];
+                let finalBlocks = [];
                 Object.keys(quotas).forEach(sub => {
-                    const shuffledSub = shuffle([...grouped[sub]]);
-                    selectedQs = selectedQs.concat(shuffledSub.slice(0, quotas[sub]));
+                    let shuffledBlocks = shuffle([...subjectBlocks[sub]]);
+                    let selectedCount = 0;
+                    for (let b of shuffledBlocks) {
+                        if (selectedCount + b.length <= quotas[sub]) {
+                            finalBlocks.push(b);
+                            selectedCount += b.length;
+                        } else if (selectedCount < quotas[sub] && b.length === 1) {
+                            finalBlocks.push(b);
+                            selectedCount += 1;
+                        }
+                        if (selectedCount === quotas[sub]) break;
+                    }
                 });
 
-                // Shuffle the final 200 questions
-                setQuestions(shuffle(selectedQs));
+                // Shuffle the blocks so subjects are mixed, but passages remain contiguous
+                finalBlocks = shuffle(finalBlocks);
+                let finalQuestions = [];
+                finalBlocks.forEach(b => finalQuestions = finalQuestions.concat(b));
+
+                setQuestions(finalQuestions);
                 setLoading(false);
             } catch (err) {
                 console.error("Failed to load MPT mock test", err);
