@@ -1,5 +1,6 @@
 "use client";
-import { auth, db, googleProvider } from '../lib/firebase';
+import { auth, db, functions, googleProvider } from '../lib/firebase';
+import { httpsCallable } from 'firebase/functions';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -240,27 +241,27 @@ const OnboardingWizard = ({ onComplete }) => {
 };
 ;
 
-const Sidebar = ({ currentView, setCurrentView, user, isPro, subscriptionEndsAt, onOpenSettings }) => {
+const Sidebar = ({ currentView, setCurrentView, user, isPro, proExpiresAt, plan, onOpenSettings }) => {
     const [timeLeft, setTimeLeft] = useState('');
     useEffect(() => {
-        if (!isPro || !subscriptionEndsAt) {
+        if (!isPro || !proExpiresAt) {
             setTimeLeft('');
             return;
         }
         const updateTimer = () => {
-            const diff = subscriptionEndsAt - Date.now();
+            const diff = proExpiresAt - Date.now();
             if (diff <= 0) {
                 setTimeLeft('Expired');
             } else {
                 const d = Math.floor(diff / (1000 * 60 * 60 * 24));
                 const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                setTimeLeft(`${d}d ${h}h left`);
+                setTimeLeft(`${d} days, ${h} hours remaining`);
             }
         };
         updateTimer();
         const int = setInterval(updateTimer, 60000);
         return () => clearInterval(int);
-    }, [isPro, subscriptionEndsAt]);
+    }, [isPro, proExpiresAt, plan]);
 
     const menuItems = [
         { id: 'dashboard', icon: 'fa-solid fa-house', label: 'Dashboard' },
@@ -307,7 +308,7 @@ const Sidebar = ({ currentView, setCurrentView, user, isPro, subscriptionEndsAt,
                     <img src={user?.photoURL || 'https://via.placeholder.com/40'} alt="Profile" className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-700 shadow-sm" />
                     <div className="flex-1 min-w-0">
                         <p className="font-bold text-sm text-slate-800 dark:text-white truncate">{user?.displayName || 'Aspirant'}</p>
-                        <p className="text-xs font-medium text-slate-500 truncate">{isPro ? `Pro Member ${timeLeft ? '('+timeLeft+')' : ''}` : 'Free Plan'}</p>
+                        <p className="text-xs font-medium text-slate-500 truncate">{isPro ? `Pro (${plan === '1_year' ? '1 Year' : '1 Month'}) ${timeLeft ? '- '+timeLeft : ''}` : 'Free Plan'}</p>
                     </div>
                     <button onClick={onOpenSettings} className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-primary shadow-sm border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer">
                         <i className="fa-solid fa-gear"></i>
@@ -1503,10 +1504,8 @@ const PremiumUpgradeView = ({ onUpgrade }) => {
     const [verifying, setVerifying] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
 
-    const handlePurchase = (plan) => {
-        // Placeholder for the Gumroad Link
-        // Replace this URL with your actual Gumroad product link when ready.
-        const gumroadLink = "https://gumroad.com/l/YOUR_PRODUCT_LINK";
+    const handlePurchase = () => {
+        const gumroadLink = "https://buyit7.gumroad.com/l/aspirix";
         window.open(gumroadLink, "_blank");
     };
 
@@ -1516,19 +1515,16 @@ const PremiumUpgradeView = ({ onUpgrade }) => {
         setErrorMsg('');
         
         try {
-            // Note: Once you have the Gumroad link, we will connect this to the Gumroad License API
-            // using a secure verification flow to check if the key is valid and hasn't been used.
-            // For now, we simulate a successful validation.
+            const activateLicense = httpsCallable(functions, 'activateLicense');
+            const result = await activateLicense({ licenseKey: licenseKey.trim() });
             
-            // Simulated network delay
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // Replace 'monthly' or 'yearly' based on the product the key is for
-            // e.g. if the API returns that it's a yearly key, call onUpgrade('yearly')
-            onUpgrade('monthly'); 
-            
+            if (result.data && result.data.success) {
+                onUpgrade(result.data.plan, result.data.expiresAt);
+            } else {
+                setErrorMsg(result.data?.message || "Invalid or expired license key.");
+            }
         } catch (err) {
-            setErrorMsg("Invalid or expired license key.");
+            setErrorMsg(err.message || "Failed to activate license key. Please try again.");
         } finally {
             setVerifying(false);
         }
@@ -1545,24 +1541,17 @@ const PremiumUpgradeView = ({ onUpgrade }) => {
             <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-4">Upgrade to Pro</h2>
             <p className="text-slate-500 dark:text-slate-400 mb-8 text-lg">Unlock all premium features including Past Papers, Subject MCQs, Full Vocabulary (D-Z), and Daily Current Affairs.</p>
             
-            <div className="flex flex-col md:flex-row gap-6 w-full mb-10">
-                <div className="flex-1 border-2 border-slate-100 dark:border-slate-700 rounded-2xl p-6 bg-slate-50 dark:bg-slate-800/30">
-                    <div className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-sm mb-2">Monthly</div>
-                    <div className="text-4xl font-black text-slate-800 dark:text-white mb-4">Rs 99<span className="text-lg font-medium text-slate-400">/mo</span></div>
-                    <button onClick={() => handlePurchase('monthly')} className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:shadow-lg hover:-translate-y-1 transition-all">Buy on Gumroad</button>
-                </div>
-                <div className="flex-1 border-2 border-primary bg-primary/5 rounded-2xl p-6 relative overflow-hidden shadow-lg shadow-primary/10 transform md:scale-105">
-                    <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">Best Value</div>
-                    <div className="text-primary font-bold uppercase tracking-wider text-sm mb-2">Yearly</div>
-                    <div className="text-4xl font-black text-primary mb-4">Rs 1000<span className="text-lg font-medium opacity-60">/yr</span></div>
-                    <button onClick={() => handlePurchase('yearly')} className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:shadow-lg hover:-translate-y-1 transition-all">Buy on Gumroad</button>
-                </div>
+            <div className="w-full mb-10">
+                <button onClick={handlePurchase} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xl hover:shadow-xl hover:-translate-y-1 transition-all flex justify-center items-center gap-3">
+                    <i className="fa-solid fa-cart-shopping"></i> Get Aspirix Pro on Gumroad
+                </button>
+                <p className="text-xs text-slate-400 mt-3">Select a 1-Month or 1-Year plan securely via Gumroad.</p>
             </div>
 
             {/* License Key Section */}
             <div className="w-full bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-left">
                 <h3 className="font-bold text-slate-800 dark:text-white mb-2">Already bought a subscription?</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Enter the license key from your Gumroad receipt to activate your Pro account.</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Enter your Gumroad License Key from your receipt to activate your Pro account.</p>
                 <div className="flex flex-col sm:flex-row gap-3">
                     <input 
                         type="text" 
@@ -1576,11 +1565,13 @@ const PremiumUpgradeView = ({ onUpgrade }) => {
                         disabled={verifying || !licenseKey.trim()} 
                         className="px-6 py-3 bg-slate-800 dark:bg-slate-700 text-white font-bold rounded-xl hover:bg-slate-700 transition-colors disabled:opacity-50 whitespace-nowrap"
                     >
-                        {verifying ? (<span><i className="fa-solid fa-spinner fa-spin mr-2"></i>Verifying...</span>) : 'Activate'}
+                        {verifying ? (<span><i className="fa-solid fa-spinner fa-spin mr-2"></i>Verifying...</span>) : 'Activate License'}
                     </button>
                 </div>
                 {errorMsg && <p className="text-red-500 text-sm mt-3 font-medium"><i className="fa-solid fa-circle-exclamation mr-1"></i>{errorMsg}</p>}
             </div>
+            
+            <p className="text-xs text-slate-400 mt-6 italic">For legacy Easypaisa payments, please contact on email myproducts505@gmail.com</p>
         </div>
     );
 };
@@ -1755,7 +1746,8 @@ const App = () => {
     const [currentView, setCurrentView] = useState('dashboard');
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isPro, setIsPro] = useState(false);
-    const [subscriptionEndsAt, setSubscriptionEndsAt] = useState(null);
+    const [plan, setPlan] = useState("");
+    const [proExpiresAt, setProExpiresAt] = useState(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
     
@@ -1881,17 +1873,20 @@ const App = () => {
                             if (data.dailyStreak) setDailyStreak(data.dailyStreak);
                             if (data.targetYear) setTargetYear(data.targetYear);
                             if (data.isPro) {
-                                if (data.subscriptionEndsAt) {
-                                    const endsAt = data.subscriptionEndsAt.toDate ? data.subscriptionEndsAt.toDate().getTime() : data.subscriptionEndsAt;
+                                if (data.proExpiresAt) {
+                                    const endsAt = data.proExpiresAt.toDate ? data.proExpiresAt.toDate().getTime() : data.proExpiresAt;
                                     if (Date.now() < endsAt) {
                                         setIsPro(true);
-                                        setSubscriptionEndsAt(endsAt);
+                                        setProExpiresAt(endsAt);
+                                        if (data.plan) setPlan(data.plan);
                                     } else {
                                         setIsPro(false);
-                                        setSubscriptionEndsAt(null);
+                                        setProExpiresAt(null);
+                                        setPlan("");
                                     }
                                 } else {
                                     setIsPro(true);
+                                    if (data.plan) setPlan(data.plan);
                                 }
                             } else {
                                 setIsPro(false);
@@ -1928,7 +1923,8 @@ const App = () => {
                     dailyStreak,
                     targetYear,
                     isPro,
-                    subscriptionEndsAt,
+                    plan,
+                    proExpiresAt,
                     lastUpdate: new Date()
                 }, { merge: true });
             } catch (err) {
@@ -1937,7 +1933,7 @@ const App = () => {
         };
         const timeout = setTimeout(syncData, 1000);
         return () => clearTimeout(timeout);
-    }, [selectedSubjects, completedTopics, facts, dailyStreak, targetYear, user, loadingAuth, appState, isPro, subscriptionEndsAt]);
+    }, [selectedSubjects, completedTopics, facts, dailyStreak, targetYear, user, loadingAuth, appState, isPro, proExpiresAt]);
 
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
@@ -1987,7 +1983,7 @@ const App = () => {
 
             {/* Sidebar (Responsive) */}
             <div className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <Sidebar onOpenSettings={() => setSettingsOpen(true)} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setMobileMenuOpen(false); }} isDarkMode={isDarkMode} toggleTheme={toggleTheme} user={user} isPro={isPro} subscriptionEndsAt={subscriptionEndsAt} />
+                <Sidebar onOpenSettings={() => setSettingsOpen(true)} currentView={currentView} setCurrentView={(v) => { setCurrentView(v); setMobileMenuOpen(false); }} isDarkMode={isDarkMode} toggleTheme={toggleTheme} user={user} isPro={isPro} proExpiresAt={proExpiresAt} plan={plan} />
             </div>
 
             <main className="flex-1 h-full flex flex-col relative w-full overflow-y-auto">
@@ -1998,12 +1994,10 @@ const App = () => {
                     (() => {
                         const premiumViews = ['mcqs', 'currentaffairs'];
                         
-const handleUpgrade = (plan) => {
-    const days = plan === 'monthly' ? 30 : 365;
-    const endsAt = Date.now() + (days * 24 * 60 * 60 * 1000);
+const handleUpgrade = (plan, expiresAt) => {
     setIsPro(true);
-    setSubscriptionEndsAt(endsAt);
-    alert(`Successfully upgraded to ${plan} plan! Valid for ${days} days.`);
+    setProExpiresAt(expiresAt);
+    alert('Successfully activated Pro license!');
 };
 if (premiumViews.includes(currentView) && !isPro) return <PremiumUpgradeView onUpgrade={handleUpgrade} />;
 
