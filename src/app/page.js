@@ -1536,17 +1536,21 @@ const PremiumUpgradeView = ({ onUpgrade, user }) => {
                 }
             } else {
                 // 2. Call Gumroad API via CORS Proxy
-                const targetUrl = 'https://api.gumroad.com/v2/licenses/verify';
+                // Send parameters in both URL and Body to ensure public proxies don't strip them
+                const targetUrl = `https://api.gumroad.com/v2/licenses/verify?product_permalink=aspirix&license_key=${encodeURIComponent(key)}&increment_uses_count=true`;
                 const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
                 
                 const res = await fetch(proxyUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    headers: { 
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': 'application/json'
+                    },
                     body: new URLSearchParams({
                         product_permalink: 'aspirix',
                         license_key: key,
                         increment_uses_count: 'true'
-                    })
+                    }).toString()
                 });
                 
                 const gumroadData = await res.json();
