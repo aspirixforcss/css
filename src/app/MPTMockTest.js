@@ -189,13 +189,13 @@ const MPTMockTest = ({ isPro }) => {
                                         <button 
                                             key={optKey}
                                             onClick={() => handleOptionSelect(globalIdx, optKey)}
-                                            className={\`w-full text-left p-4 rounded-xl border-2 transition-all font-medium \${
+                                            className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium ${
                                                 isSelected 
                                                     ? 'border-primary bg-primary/5 text-primary' 
                                                     : 'border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-300'
-                                            }\`}
+                                            }`}
                                         >
-                                            <span className={\`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs mr-3 \${isSelected ? 'bg-primary text-white' : 'bg-slate-200 dark:bg-slate-700'}\`}>
+                                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs mr-3 ${isSelected ? 'bg-primary text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
                                                 {optKey.replace('Option ', '')}
                                             </span>
                                             {q[optKey]}
