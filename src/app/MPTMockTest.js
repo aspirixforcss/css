@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import rawData from '../../public/mpt_mock.json';
 
 const MPTMockTest = ({ isPro }) => {
     const [questions, setQuestions] = useState([]);
@@ -13,8 +14,7 @@ const MPTMockTest = ({ isPro }) => {
 
         const loadQuestions = async () => {
             try {
-                const res = await fetch('/mpt_mock.json');
-                const rawData = await res.json();
+                // Data loaded directly via import
                 
                 // Group by subjects
                 const grouped = {
