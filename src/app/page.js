@@ -6,6 +6,7 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
 import * as XLSX from 'xlsx';
+import MPTMockTest from './MPTMockTest';
 import { compulsorySubjects, optionalSubjects, syllabusData, sampleMcqs, sampleVocab } from './data';
 
 const LoginScreen = ({ onLogin }) => {
@@ -270,6 +271,7 @@ const Sidebar = ({ currentView, setCurrentView, user, isPro, proExpiresAt, plan,
         { id: 'currentaffairs', icon: 'fa-solid fa-fire', label: 'Current Affairs', pro: true },
         { id: 'mcqs', icon: 'fa-solid fa-list-check', label: 'Subject MCQs', pro: true },
         { id: 'vocab', icon: 'fa-solid fa-spell-check', label: 'Vocab Flashcards' },
+        { id: 'mptmock', icon: 'fa-solid fa-graduation-cap', label: 'MPT Mock Test', pro: true },
         { id: 'factbook', icon: 'fa-solid fa-lightbulb', label: 'Fact Book' },
     ];
     
@@ -2091,7 +2093,7 @@ const App = () => {
                 </button>
                 {
                     (() => {
-                        const premiumViews = ['mcqs', 'currentaffairs'];
+                        const premiumViews = ['mcqs', 'currentaffairs', 'mptmock'];
                         
 const handleUpgrade = (plan, expiresAt) => {
     setIsPro(true);
@@ -2110,6 +2112,7 @@ if (currentView === 'upgrade') return <PremiumUpgradeView onUpgrade={handleUpgra
                             case 'factbook': return <FactBook facts={facts} setFacts={setFacts} />;
                             case 'currentaffairs': return <CurrentAffairsView />;
                             case 'mcqs': return <SubjectWiseMCQs selectedSubjects={selectedSubjects} />;
+                              case 'mptmock': return <MPTMockTest isPro={isPro} />;
                             case 'vocab': return <VocabFlashcards isPro={isPro} />;
                               case 'about': return <AboutView />;
                               case 'privacy': return <PrivacyView />;
