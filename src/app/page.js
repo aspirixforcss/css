@@ -1499,103 +1499,31 @@ const DisclaimerView = () => (
 );
 
 const PremiumUpgradeView = ({ onUpgrade, user }) => {
-    const [licenseKey, setLicenseKey] = useState('');
-    const [verifying, setVerifying] = useState(false);
-    const [errorMsg, setErrorMsg] = useState('');
+    const [trxId, setTrxId] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [msg, setMsg] = useState({ type: '', text: '' });
 
-    const handlePurchase = () => {
-        const gumroadLink = "https://buyit7.gumroad.com/l/aspirix";
-        window.open(gumroadLink, "_blank");
-    };
-
-    const handleVerify = async () => {
-        if (!licenseKey.trim()) return;
-        setVerifying(true);
-        setErrorMsg('');
+    const handleSubmitTrx = async () => {
+        if (!trxId.trim()) return;
+        setSubmitting(true);
+        setMsg({ type: '', text: '' });
         
         try {
-            if (!user) throw new Error("You must be logged in to activate a license.");
-            const key = licenseKey.trim();
+            if (!user) throw new Error("You must be logged in to submit a transaction ID.");
             
-            // 1. Check if the license was already claimed in our database
-            const licenseRef = doc(db, 'licenses', key);
-            const licenseSnap = await getDoc(licenseRef);
-            
-            let planType = "1_month";
-            const now = new Date();
-            let expirationDate = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
-            
-            if (licenseSnap.exists()) {
-                if (licenseSnap.data().boundUserId !== user.uid) {
-                    throw new Error("This license key is already locked to another account.");
-                }
-                // Already theirs, re-activate locally
-                planType = licenseSnap.data().plan || '1_month';
-                if (planType === '1_year') {
-                    expirationDate = new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000));
-                }
-            } else {
-                // 2. Call Gumroad API via CORS Proxy
-                // Put everything in the URL so public proxies don't strip them
-                const targetUrl = `https://api.gumroad.com/v2/licenses/verify?product_id=atDQnyJo_kNLN4DMI4LwOg%3D%3D&license_key=${encodeURIComponent(key)}&increment_uses_count=true`;
-                const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
-                
-                const res = await fetch(proxyUrl, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Accept': 'application/json'
-                    },
-                    body: new URLSearchParams({
-                        product_id: 'atDQnyJo_kNLN4DMI4LwOg==',
-                        license_key: key,
-                        increment_uses_count: 'true'
-                    }).toString()
-                });
-                
-                const gumroadData = await res.json();
-                
-                if (!gumroadData.success) {
-                    throw new Error(gumroadData.message || "Gumroad rejected this key (Invalid or does not exist).");
-                }
-                if (gumroadData.purchase.refunded || gumroadData.purchase.chargebacked) {
-                    throw new Error("This license key was refunded or charged back.");
-                }
-                
-                // Duration Parsing
-                const variants = (gumroadData.purchase.variants || "").toLowerCase();
-                if (variants.includes("year")) {
-                    planType = "1_year";
-                    expirationDate = new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000));
-                }
-                
-                // 3. Claim it in Firestore to prevent reuse by others
-                await setDoc(licenseRef, {
-                    boundUserId: user.uid,
-                    claimedEmail: user.email,
-                    plan: planType,
-                    activatedAt: new Date(),
-                    status: "active"
-                });
-            }
-            
-            // 4. Update the user's document
             const userRef = doc(db, 'users', user.uid);
             await setDoc(userRef, {
-                isPro: true,
-                plan: planType,
-                licenseKey: key,
-                proExpiresAt: expirationDate.getTime()
+                pendingTrx: trxId.trim(),
+                pendingTrxDate: new Date().toISOString()
             }, { merge: true });
             
-            // 5. Update local state
-            onUpgrade(planType, expirationDate.getTime());
-            
+            setMsg({ type: 'success', text: 'Transaction ID submitted successfully! Please wait up to 24 hours for manual verification.' });
+            setTrxId('');
         } catch (err) {
-            console.error("Verification error:", err);
-            setErrorMsg(err.message || "Failed to activate license key. Please check your key and try again.");
+            console.error(err);
+            setMsg({ type: 'error', text: 'Failed to submit. Please try again or contact support.' });
         } finally {
-            setVerifying(false);
+            setSubmitting(false);
         }
     };
 
@@ -1610,37 +1538,56 @@ const PremiumUpgradeView = ({ onUpgrade, user }) => {
             <h2 className="text-3xl font-black text-slate-800 dark:text-white mb-4">Upgrade to Pro</h2>
             <p className="text-slate-500 dark:text-slate-400 mb-8 text-lg">Unlock all premium features including Past Papers, Subject MCQs, Full Vocabulary (D-Z), and Daily Current Affairs.</p>
             
-            <div className="w-full mb-10">
-                <button onClick={handlePurchase} className="w-full py-4 bg-primary text-white rounded-2xl font-black text-xl hover:shadow-xl hover:-translate-y-1 transition-all flex justify-center items-center gap-3">
-                    <i className="fa-solid fa-cart-shopping"></i> Get Aspirix Pro on Gumroad
-                </button>
-                <p className="text-xs text-slate-400 mt-3">Select a 1-Month or 1-Year plan securely via Gumroad.</p>
-            </div>
-
-            {/* License Key Section */}
-            <div className="w-full bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-left">
-                <h3 className="font-bold text-slate-800 dark:text-white mb-2">Already bought a subscription?</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Enter your Gumroad License Key from your receipt to activate your Pro account.</p>
+            <div className="w-full bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-left mb-6">
+                <h3 className="font-bold text-slate-800 dark:text-white mb-4 text-xl border-b pb-2"><i className="fa-solid fa-money-bill-transfer mr-2 text-green-600"></i>Easypaisa Payment</h3>
+                
+                <div className="space-y-3 mb-6 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <p className="flex justify-between border-b dark:border-slate-800 pb-2">
+                        <span className="text-slate-500">Account Name:</span>
+                        <span className="font-bold text-slate-800 dark:text-white">Naseem Khan</span>
+                    </p>
+                    <p className="flex justify-between border-b dark:border-slate-800 pb-2">
+                        <span className="text-slate-500">Easypaisa Number:</span>
+                        <span className="font-bold text-primary text-lg">03365005815</span>
+                    </p>
+                    <p className="flex justify-between pb-2">
+                        <span className="text-slate-500">1 Month Plan:</span>
+                        <span className="font-bold text-slate-800 dark:text-white">Rs. 300</span>
+                    </p>
+                    <p className="flex justify-between">
+                        <span className="text-slate-500">1 Year Plan:</span>
+                        <span className="font-bold text-slate-800 dark:text-white">Rs. 1000</span>
+                    </p>
+                </div>
+                
+                <h3 className="font-bold text-slate-800 dark:text-white mb-2">Step 2: Verify Payment</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">After sending the payment via Easypaisa, enter your Transaction ID (Trx ID) below:</p>
+                
                 <div className="flex flex-col sm:flex-row gap-3">
                     <input 
                         type="text" 
-                        placeholder="e.g. XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" 
+                        placeholder="Enter Trx ID (e.g. 123456789)" 
                         className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:border-primary font-mono text-sm" 
-                        value={licenseKey} 
-                        onChange={e => setLicenseKey(e.target.value)} 
+                        value={trxId} 
+                        onChange={e => setTrxId(e.target.value)} 
                     />
                     <button 
-                        onClick={handleVerify} 
-                        disabled={verifying || !licenseKey.trim()} 
-                        className="px-6 py-3 bg-slate-800 dark:bg-slate-700 text-white font-bold rounded-xl hover:bg-slate-700 transition-colors disabled:opacity-50 whitespace-nowrap"
+                        onClick={handleSubmitTrx} 
+                        disabled={submitting || !trxId.trim()} 
+                        className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 whitespace-nowrap"
                     >
-                        {verifying ? (<span><i className="fa-solid fa-spinner fa-spin mr-2"></i>Verifying...</span>) : 'Activate License'}
+                        {submitting ? (<span><i className="fa-solid fa-spinner fa-spin mr-2"></i>Submitting...</span>) : 'Submit Trx ID'}
                     </button>
                 </div>
-                {errorMsg && <p className="text-red-500 text-sm mt-3 font-medium"><i className="fa-solid fa-circle-exclamation mr-1"></i>{errorMsg}</p>}
+                {msg.text && (
+                    <div className={`mt-4 p-3 rounded-xl text-sm font-medium ${msg.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                        <i className={`fa-solid ${msg.type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'} mr-2`}></i>
+                        {msg.text}
+                    </div>
+                )}
             </div>
             
-            <p className="text-xs text-slate-400 mt-6 italic">For legacy Easypaisa payments, please contact on email myproducts505@gmail.com</p>
+            <p className="text-xs text-slate-400 mt-2">Manual verification takes up to 24 hours. Contact myproducts505@gmail.com for support.</p>
         </div>
     );
 };
