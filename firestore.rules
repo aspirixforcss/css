@@ -1,15 +1,25 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Licenses collection
     match /licenses/{licenseKey} {
-      allow read: if request.auth != null && resource.data.boundUserId == request.auth.uid;
-      allow write: if false; // Only Cloud Functions can write
+      // Anyone can read a license to check if it's already bound to someone
+      allow read: if request.auth != null;
+      
+      // Users can only create a license record if they are binding it to themselves
+      allow create: if request.auth != null 
+                    && request.resource.data.boundUserId == request.auth.uid;
+                    
+      // Users can only update a license if they already own it
+      allow update: if request.auth != null 
+                    && resource.data.boundUserId == request.auth.uid
+                    && request.resource.data.boundUserId == request.auth.uid;
     }
     
+    // Users collection
     match /users/{userId} {
-      allow read, create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && request.auth.uid == userId
-                    && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['isPro', 'proExpiresAt', 'plan', 'licenseKey']));
+      // Users can read, create, and update their own document completely
+      allow read, create, update: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
