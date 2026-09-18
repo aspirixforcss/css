@@ -1551,8 +1551,11 @@ const PremiumUpgradeView = ({ onUpgrade, user }) => {
                 
                 const gumroadData = await res.json();
                 
-                if (!gumroadData.success || gumroadData.purchase.refunded || gumroadData.purchase.chargebacked) {
-                    throw new Error("Invalid, expired, or refunded license key.");
+                if (!gumroadData.success) {
+                    throw new Error(gumroadData.message || "Gumroad rejected this key (Invalid or does not exist).");
+                }
+                if (gumroadData.purchase.refunded || gumroadData.purchase.chargebacked) {
+                    throw new Error("This license key was refunded or charged back.");
                 }
                 
                 // Duration Parsing
