@@ -933,15 +933,36 @@ const FactBook = ({ facts, setFacts }) => {
     const [newFactTag, setNewFactTag] = useState('Economy');
     const [filterTag, setFilterTag] = useState('All');
     const [showAddModal, setShowAddModal] = useState(false);
+    const [editingFactId, setEditingFactId] = useState(null);
 
-    const tags = ["Economy", "Budget", "Education", "Security", "Health", "Gender", "Crime", "Governance", "Climate", "Tech", "International Relations", "Society", "History", "Law", "Energy", "Infrastructure", "Agriculture", "Other"];
+    const tags = ["Economy", "Budget", "Education", "Security", "Health", "Gender", "Crime", "Governance", "Climate", "Tech", "International Relations", "Society", "History", "Law", "Energy", "Infrastructure", "Agriculture", "Other", "Demographics"];
 
     const handleSave = () => {
         if (!newFactTitle || !newFactContent) return;
-        setFacts([{ id: Date.now().toString(), title: newFactTitle, content: newFactContent, tag: newFactTag, date: new Date().toLocaleDateString() }, ...facts]);
+        if (editingFactId) {
+            setFacts(facts.map(f => f.id === editingFactId ? { ...f, title: newFactTitle, content: newFactContent, tag: newFactTag, date: new Date().toLocaleDateString() } : f));
+        } else {
+            setFacts([{ id: Date.now().toString(), title: newFactTitle, content: newFactContent, tag: newFactTag, date: new Date().toLocaleDateString() }, ...facts]);
+        }
         setNewFactTitle('');
         setNewFactContent('');
+        setEditingFactId(null);
         setShowAddModal(false);
+    };
+    
+    const handleEdit = (fact) => {
+        setNewFactTitle(fact.title);
+        setNewFactContent(fact.content);
+        setNewFactTag(fact.tag);
+        setEditingFactId(fact.id);
+        setShowAddModal(true);
+    };
+    
+    const closeAddModal = () => {
+        setShowAddModal(false);
+        setEditingFactId(null);
+        setNewFactTitle('');
+        setNewFactContent('');
     };
     const removeFact = (id) => {
         setFacts(facts.filter(f => f.id !== id));
@@ -1011,9 +1032,14 @@ const FactBook = ({ facts, setFacts }) => {
                                     </span>
                                     <h4 className="font-extrabold text-xl text-slate-800 dark:text-white leading-tight">{fact.title}</h4>
                                 </div>
-                                <button onClick={() => removeFact(fact.id)} className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0">
-                                    <i className="fa-solid fa-trash text-sm"></i>
-                                </button>
+                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={() => handleEdit(fact)} className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors flex-shrink-0" title="Edit Fact">
+                                        <i className="fa-solid fa-pen text-sm"></i>
+                                    </button>
+                                    <button onClick={() => removeFact(fact.id)} className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors flex-shrink-0" title="Delete Fact">
+                                        <i className="fa-solid fa-trash text-sm"></i>
+                                    </button>
+                                </div>
                             </div>
                             <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed font-medium mb-4">{fact.content}</p>
                             <div className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
@@ -1029,8 +1055,8 @@ const FactBook = ({ facts, setFacts }) => {
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 animate-fade-in">
                     <div className="bg-white dark:bg-surfaceDark w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden relative">
                         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-                            <h3 className="font-extrabold text-2xl text-slate-800 dark:text-white flex items-center gap-2"><i className="fa-solid fa-plus text-primary"></i> Add New Fact</h3>
-                            <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 w-8 h-8 flex justify-center items-center rounded-full bg-slate-200 dark:bg-slate-700 transition-colors">
+                            <h3 className="font-extrabold text-2xl text-slate-800 dark:text-white flex items-center gap-2"><i className={`fa-solid ${editingFactId ? 'fa-pen' : 'fa-plus'} text-primary`}></i> {editingFactId ? 'Edit Fact' : 'Add New Fact'}</h3>
+                            <button onClick={closeAddModal} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 w-8 h-8 flex justify-center items-center rounded-full bg-slate-200 dark:bg-slate-700 transition-colors">
                                 <i className="fa-solid fa-xmark text-lg"></i>
                             </button>
                         </div>
@@ -2254,7 +2280,7 @@ if (currentView === 'upgrade') return <PremiumUpgradeView onUpgrade={handleUpgra
                                     setFactModalOpen(false);
                                     alert("Successfully Saved to Fact Book!");
                                 }} className="px-6 py-2.5 rounded-xl font-bold bg-primary text-white shadow-md hover:bg-primaryDark transition-colors flex items-center gap-2">
-                                    <i className="fa-solid fa-save"></i> Save Fact
+                                    <i className="fa-solid fa-save"></i> {editingFactId ? 'Update Fact' : 'Save Fact'}
                                 </button>
                             </div>
                         </div>
