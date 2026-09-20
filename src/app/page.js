@@ -1738,12 +1738,12 @@ const CurrentAffairsView = () => {
                                 <span className="font-bold text-primary uppercase tracking-widest text-xs">{activeArticle ? "Selected Article" : "Latest Editorial"}</span>
                             </div>
                             <h3 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white leading-tight font-serif">{topArticle.title}</h3>
-                            <p className="text-slate-400 mt-4 font-medium uppercase tracking-widest text-sm">{new Date(topArticle.pubDate).toDateString()}</p>
+                            <p className="text-slate-400 mt-4 font-medium uppercase tracking-widest text-sm">{topArticle.sourceName || "Dawn News"} • {new Date(topArticle.pubDate).toDateString()}</p>
                         </div>
                         
-                        <div className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed text-justify space-y-4">
+                        <div className="columns-1 md:columns-2 gap-10 text-slate-700 dark:text-slate-300 font-medium leading-relaxed text-justify">
                             {(topArticle.fullText || "").split('\n\n').filter(s => s.trim().length > 0).map((paragraph, idx) => (
-                                <p key={idx} className="leading-7">
+                                <p key={idx} className="leading-7 mb-4 break-inside-avoid-column">
                                     {idx === 0 && paragraph.length > 0 ? (
                                         <>
                                             <span className="float-left text-5xl font-black text-slate-900 dark:text-white pr-3 font-serif mt-2 leading-none">{paragraph.charAt(0)}</span>
@@ -1755,6 +1755,14 @@ const CurrentAffairsView = () => {
                                 </p>
                             ))}
                         </div>
+                        
+                        {topArticle.link && (
+                            <div className="mt-8 flex justify-center md:justify-end border-t border-slate-100 dark:border-slate-800 pt-6">
+                                <a href={topArticle.link} target="_blank" rel="noopener noreferrer" className="bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white text-slate-700 dark:text-slate-300 font-bold py-3 px-6 rounded-xl transition-colors flex items-center gap-2 shadow-sm">
+                                    Read Full Article <i className="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -1770,7 +1778,7 @@ const CurrentAffairsView = () => {
                                 <span className="font-black text-2xl text-slate-200 dark:text-slate-700 group-hover:text-primary transition-colors">{idx + 1}</span>
                                 <div>
                                     <h4 className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors text-sm leading-snug line-clamp-2">{article.title}</h4>
-                                    <p className="text-xs text-slate-400 mt-2 font-medium">{new Date(article.pubDate).toLocaleDateString()}</p>
+                                    <p className="text-xs text-slate-400 mt-2 font-medium">{article.sourceName || "Dawn"} • {new Date(article.pubDate).toLocaleDateString()}</p>
                                 </div>
                             </button>
                         ))}
@@ -1786,7 +1794,7 @@ const CurrentAffairsView = () => {
                                 <span className="font-black text-2xl text-slate-200 dark:text-slate-700 group-hover:text-primary transition-colors">{idx + 1}</span>
                                 <div>
                                     <h4 className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors text-sm leading-snug line-clamp-2">{article.title}</h4>
-                                    <p className="text-xs text-slate-400 mt-2 font-medium">{new Date(article.pubDate).toLocaleDateString()}</p>
+                                    <p className="text-xs text-slate-400 mt-2 font-medium">{article.sourceName || "Dawn"} • {new Date(article.pubDate).toLocaleDateString()}</p>
                                 </div>
                             </button>
                         ))}
