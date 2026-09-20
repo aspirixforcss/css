@@ -3,6 +3,12 @@ import './globals.css'
 export const metadata = {
   title: 'ASPIRIX FOR CSS - Platform Prototype',
   description: 'Your Ultimate FPSC Journey Starts Here.',
+  icons: {
+    icon: [
+      { url: '/css/favicon-light.png', media: '(prefers-color-scheme: light)' },
+      { url: '/css/favicon-dark.png', media: '(prefers-color-scheme: dark)' }
+    ]
+  }
 }
 
 export default function RootLayout({ children }) {
