@@ -1779,7 +1779,7 @@ const SettingsModal = ({ isOpen, onClose, onChangeSubjects, onSignOut, isPro, pl
         if (diff <= 0) return "Expired";
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         if (days === 0) return "Expires today";
-        return `${days} days remaining`;
+        return `${days} days remaining${plan === '7_days_trial' ? ' in trial' : ''}`;
     };
 
     return (
@@ -1799,7 +1799,7 @@ const SettingsModal = ({ isOpen, onClose, onChangeSubjects, onSignOut, isPro, pl
                         <div className="flex items-center justify-between mb-4">
                             <div>
                                 <div className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                    {isPro ? <><i className="fa-solid fa-crown text-amber-500"></i> Aspirix PRO</> : 'Free Plan'}
+                                    {isPro ? (plan === '7_days_trial' ? <><i className="fa-solid fa-gift text-primary"></i> 7-Day Trial</> : <><i className="fa-solid fa-crown text-amber-500"></i> Aspirix PRO</>) : 'Free Plan'}
                                 </div>
                                 <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                     {getRemainingText()}
@@ -1807,7 +1807,7 @@ const SettingsModal = ({ isOpen, onClose, onChangeSubjects, onSignOut, isPro, pl
                             </div>
                         </div>
                         <button onClick={() => { onClose(); onRenew(); }} className="w-full py-2.5 bg-primary/10 hover:bg-primary/20 text-primary font-bold rounded-lg transition-colors flex justify-center items-center gap-2">
-                            <i className="fa-solid fa-arrow-up-right-dots"></i> {isPro ? 'Renew Subscription' : 'Upgrade to Pro'}
+                            <i className="fa-solid fa-arrow-up-right-dots"></i> {isPro && plan !== '7_days_trial' ? 'Renew Subscription' : 'Upgrade to Pro'}
                         </button>
                     </div>
 
@@ -1965,40 +1965,45 @@ const App = () => {
                             if (data.targetYear) setTargetYear(data.targetYear);
                             if (data.isPro) {
                                 const now = Date.now();
-                                
-                                // Auto-calculate logic for Admin Manual Renewal
-                                // Triggers if: forceRenew is true, or proExpiresAt is missing, or proExpiresAt is in the past
                                 const existingExpiresAt = data.proExpiresAt ? (data.proExpiresAt.toDate ? data.proExpiresAt.toDate().getTime() : data.proExpiresAt) : 0;
                                 
-                                if (data.forceRenew || !existingExpiresAt || existingExpiresAt < now) {
+                                if (data.forceRenew || !existingExpiresAt) {
                                     const planType = data.plan === '1_year' ? '1_year' : '1_month';
                                     const days = planType === '1_year' ? 365 : 30;
                                     
-                                    // If renewing an active subscription early, add to existing time. Otherwise start from today.
                                     const baseDate = (existingExpiresAt > now) ? existingExpiresAt : now;
                                     const newExpiration = baseDate + (days * 24 * 60 * 60 * 1000);
                                     
                                     try {
-                                        // Update Firestore instantly so the user doesn't renew every time they refresh
                                         await setDoc(docRef, {
                                             proExpiresAt: newExpiration,
                                             plan: planType,
-                                            forceRenew: false, // Clear the trigger
-                                            pendingTrx: null // Clear pending transaction
+                                            forceRenew: false,
+                                            pendingTrx: null
                                         }, { merge: true });
                                         
                                         setIsPro(true);
                                         setPlan(planType);
                                         setProExpiresAt(newExpiration);
                                     } catch (e) {
-                                        console.error("Auto-renew update failed:", e);
-                                        // Fallback if update fails
                                         setIsPro(true);
                                         setPlan(planType);
                                         setProExpiresAt(newExpiration);
                                     }
+                                } else if (existingExpiresAt < now) {
+                                    // Subscription or 7-day trial has naturally EXPIRED
+                                    try {
+                                        await setDoc(docRef, {
+                                            isPro: false,
+                                            plan: "expired"
+                                        }, { merge: true });
+                                    } catch (e) { console.error(e); }
+                                    
+                                    setIsPro(false);
+                                    setPlan("expired");
+                                    setProExpiresAt(existingExpiresAt);
                                 } else {
-                                    // Subscription is active and not forcefully renewed
+                                    // Subscription is active
                                     setIsPro(true);
                                     setProExpiresAt(existingExpiresAt);
                                     if (data.plan) setPlan(data.plan);
@@ -2006,13 +2011,19 @@ const App = () => {
                             } else {
                                 setIsPro(false);
                                 setProExpiresAt(null);
-                                setPlan("");
+                                setPlan(data.plan || "");
                             }
                             setAppState('main');
                         } else {
+                            // Document exists but no subjects (partially onboarded)
                             setAppState('onboarding');
                         }
                     } else {
+                        // COMPLETELY NEW USER: Give 7 days free trial immediately
+                        const trialEnd = Date.now() + (7 * 24 * 60 * 60 * 1000);
+                        setIsPro(true);
+                        setPlan("7_days_trial");
+                        setProExpiresAt(trialEnd);
                         setAppState('onboarding');
                     }
                 } catch (err) {
