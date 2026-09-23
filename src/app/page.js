@@ -1080,7 +1080,7 @@ const FactBook = ({ facts, setFacts }) => {
                             <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
                                 <button onClick={() => setShowAddModal(false)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Cancel</button>
                                 <button onClick={handleSave} className="px-8 py-3 rounded-xl font-bold bg-primary text-white shadow-md hover:bg-primaryDark transition-colors flex items-center gap-2">
-                                    <i className="fa-solid fa-save"></i> Save to Fact Book
+                                    <i className="fa-solid fa-save"></i> {editingFactId ? 'Update Fact' : 'Save to Fact Book'}
                                 </button>
                             </div>
                         </div>
@@ -2306,7 +2306,7 @@ if (currentView === 'upgrade') return <PremiumUpgradeView onUpgrade={handleUpgra
                                     setFactModalOpen(false);
                                     alert("Successfully Saved to Fact Book!");
                                 }} className="px-6 py-2.5 rounded-xl font-bold bg-primary text-white shadow-md hover:bg-primaryDark transition-colors flex items-center gap-2">
-                                    <i className="fa-solid fa-save"></i> {editingFactId ? 'Update Fact' : 'Save Fact'}
+                                    <i className="fa-solid fa-save"></i> Save Fact
                                 </button>
                             </div>
                         </div>
