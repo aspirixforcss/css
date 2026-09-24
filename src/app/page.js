@@ -1183,20 +1183,58 @@ const VocabFlashcards = ({ isPro }) => {
                 
                 workbook.SheetNames.forEach(sheetName => {
                     const sheet = workbook.Sheets[sheetName];
-                    const data = XLSX.utils.sheet_to_json(sheet);
+                    const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     
                     data.forEach(row => {
-                        const vals = Object.values(row);
-                        const word = row.Word || row.word || row.WORD || row.Idiom || row.idiom || row.Phrase || row.phrase || row.Sentence || row.sentence || row.Preposition || row.preposition || vals[0] || "";
-                        if (word && word.toString().trim()) {
-                            const syn = row.Synonyms || row.synonyms || row.SYNONYMS || "";
-                            const ant = row.Antonyms || row.antonyms || row.ANTONYMS || "";
+                        if (!row || row.length < 2) return;
+                        
+                        const rowStr = row.join(' ').toLowerCase();
+                        if (rowStr.includes('word') && rowStr.includes('meaning')) return;
+                        if (rowStr.includes('sentence') && rowStr.includes('preposition')) return;
+                        if (rowStr.includes('incorrect') && rowStr.includes('correct')) return;
+                        if (rowStr.includes('urdu') && rowStr.includes('english')) return;
+                        if (rowStr.includes('idiom') && rowStr.includes('meaning')) return;
+                        if (rowStr.includes('rule 1') || rowStr.includes('rule 2')) return;
+
+                        let word = "";
+                        let meaning = "";
+                        let example = "";
+                        let syn = [];
+                        let ant = [];
+
+                        if (subDomain === 'Sentence correction') {
+                            if (typeof row[0] === 'number') {
+                                word = row[1];
+                                meaning = row[2];
+                            } else {
+                                word = row[0];
+                                meaning = row[1];
+                            }
+                        } else if (subDomain === 'Translations') {
+                            word = row[0];
+                            meaning = row[1];
+                        } else if (subDomain === 'Prepositions') {
+                            word = row[0];
+                            meaning = row[1];
+                        } else if (subDomain === 'Idioms') {
+                            word = row[0];
+                            meaning = row[1];
+                            example = row[2] || "";
+                        } else {
+                            word = row[0];
+                            meaning = row[1];
+                            if (row[2]) syn = row[2].toString().split(',').map(s=>s.trim());
+                            if (row[3]) ant = row[3].toString().split(',').map(s=>s.trim());
+                            if (row[4]) example = row[4];
+                        }
+
+                        if (word && meaning) {
                             allVocab.push({
-                                word: word.toString().trim(),
-                                meaning: row.Meaning || row.meaning || row.MEANING || row.Correction || row.correction || row.Translation || row.translation || row.Rule || row.rule || vals[1] || "No meaning provided",
-                                synonyms: syn ? syn.toString().split(',').map(s=>s.trim()).filter(Boolean) : [],
-                                antonyms: ant ? ant.toString().split(',').map(s=>s.trim()).filter(Boolean) : [],
-                                example: row.Example || row.example || row.EXAMPLE || vals[2] || "No example provided"
+                                word: String(word).trim(),
+                                meaning: String(meaning).trim(),
+                                synonyms: syn,
+                                antonyms: ant,
+                                example: String(example || "").trim()
                             });
                         }
                     });
@@ -1222,15 +1260,18 @@ const VocabFlashcards = ({ isPro }) => {
     const activeData = liveVocab.length > 0 ? liveVocab : (subDomain === 'GRE Vocabulary' ? sampleVocab : []);
 
     const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
+    const isFullListDomain = ['Translations', 'Idioms', 'Prepositions', 'Sentence correction'].includes(subDomain);
 
     const handleStart = (category) => {
-        if (!isPro && !['A','B','C'].includes(category)) {
+        if (!isPro && category !== 'All' && category !== 'Random' && !['A','B','C'].includes(category)) {
             alert('Unlock Pro to access items for letters D to Z. Click on Past Papers or Current Affairs to see how to upgrade.');
             return;
         }
         let filtered = [];
         if (category === 'Random') {
             filtered = [...activeData].sort(() => 0.5 - Math.random());
+        } else if (category === 'All') {
+            filtered = activeData;
         } else {
             filtered = activeData.filter(v => v.word.toUpperCase().startsWith(category));
         }
@@ -1239,6 +1280,8 @@ const VocabFlashcards = ({ isPro }) => {
             setSelectedCategory(category);
             setCurrentIndex(0);
             setFlipped(false);
+        } else {
+            alert('No cards available for this category yet!');
         }
     };
 
@@ -1298,29 +1341,48 @@ const VocabFlashcards = ({ isPro }) => {
                         : <><i className="fa-solid fa-circle-exclamation text-amber-500 text-lg mt-0.5"></i> <div><strong>Excel Sync Failed:</strong> {excelError} <br/><span className="text-slate-400 font-normal">{subDomain === 'GRE Vocabulary' ? `Using ${sampleVocab.length} default words.` : 'No default data available for this section.'}</span></div></>}
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    <button 
-                        onClick={() => handleStart('Random')}
-                        disabled={activeData.length === 0}
-                        className="col-span-2 md:col-span-4 lg:col-span-6 p-4 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-3 disabled:opacity-50"
-                    >
-                        <i className="fa-solid fa-shuffle"></i> Start Random Mix
-                    </button>
-                    
-                    {letters.map(letter => {
-                        const hasWords = availableLetters.has(letter);
-                        return (
-                            <button
-                                key={letter}
-                                onClick={() => hasWords && handleStart(letter)}
-                                disabled={!hasWords}
-                                className={`p-4 rounded-2xl border-2 font-bold transition-all text-center ${hasWords ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-white hover:border-primary hover:text-primary shadow-sm' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800/50 text-slate-400/50 opacity-50 cursor-not-allowed'}`}
-                            >
-                                {letter} Series
-                            </button>
-                        );
-                    })}
-                </div>
+                {isFullListDomain ? (
+                    <div className="flex flex-col sm:flex-row gap-4 max-w-2xl">
+                        <button 
+                            onClick={() => handleStart('All')}
+                            disabled={activeData.length === 0}
+                            className="flex-1 p-4 rounded-2xl bg-white dark:bg-slate-800 border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all shadow-md flex items-center justify-center gap-3 disabled:opacity-50"
+                        >
+                            <i className="fa-solid fa-layer-group"></i> Start All (A-Z)
+                        </button>
+                        <button 
+                            onClick={() => handleStart('Random')}
+                            disabled={activeData.length === 0}
+                            className="flex-1 p-4 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-3 disabled:opacity-50"
+                        >
+                            <i className="fa-solid fa-shuffle"></i> Start Random Mix
+                        </button>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        <button 
+                            onClick={() => handleStart('Random')}
+                            disabled={activeData.length === 0}
+                            className="col-span-2 md:col-span-4 lg:col-span-6 p-4 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-3 disabled:opacity-50"
+                        >
+                            <i className="fa-solid fa-shuffle"></i> Start Random Mix
+                        </button>
+                        
+                        {letters.map(letter => {
+                            const hasWords = availableLetters.has(letter);
+                            return (
+                                <button
+                                    key={letter}
+                                    onClick={() => hasWords && handleStart(letter)}
+                                    disabled={!hasWords}
+                                    className={`p-4 rounded-2xl border-2 font-bold transition-all text-center ${hasWords ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-white hover:border-primary hover:text-primary shadow-sm' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800/50 text-slate-400/50 opacity-50 cursor-not-allowed'}`}
+                                >
+                                    {letter} Series
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         );
     }
@@ -1337,7 +1399,7 @@ const VocabFlashcards = ({ isPro }) => {
                     <i className="fa-solid fa-arrow-left"></i> Back to Categories
                 </button>
                 <div className="text-slate-500 font-bold bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full text-sm">
-                    {subDomain} | {selectedCategory} Series : {currentIndex + 1} / {deck.length}
+                    {subDomain} | {selectedCategory} : {currentIndex + 1} / {deck.length}
                 </div>
             </div>
 
@@ -1347,19 +1409,21 @@ const VocabFlashcards = ({ isPro }) => {
             >
                 <div className={`w-full h-full transition-transform duration-500 transform-style-3d ${flipped ? 'rotate-y-180' : ''}`}>
                     {/* Front */}
-                    <div className="absolute w-full h-full backface-hidden bg-white dark:bg-surfaceDark rounded-3xl border-2 border-slate-200 dark:border-slate-700 shadow-xl flex flex-col items-center justify-center p-8 text-center">
+                    <div className="absolute w-full h-full backface-hidden bg-white dark:bg-surfaceDark rounded-3xl border-2 border-slate-200 dark:border-slate-700 shadow-xl flex flex-col items-center justify-center p-6 md:p-8 text-center overflow-y-auto scrollbar-hide">
                         <div className="absolute top-6 right-6 text-slate-300 dark:text-slate-600">
                             <i className="fa-solid fa-hand-pointer animate-pulse text-xl"></i>
                         </div>
-                        <h3 className="text-4xl md:text-6xl font-black text-slate-800 dark:text-white mb-4 tracking-tight">{currentCard.word}</h3>
-                        <p className="text-slate-400 font-medium">Click to reveal details</p>
+                        <div className="flex flex-col min-h-full justify-center w-full">
+                            <h3 className={`${currentCard.word.length > 50 ? 'text-2xl md:text-3xl' : 'text-4xl md:text-6xl'} font-black text-slate-800 dark:text-white mb-4 tracking-tight leading-snug`}>{currentCard.word}</h3>
+                            <p className="text-slate-400 font-medium mt-auto">Click to reveal details</p>
+                        </div>
                     </div>
                     
                     {/* Back */}
-                    <div className="absolute w-full h-full backface-hidden bg-gradient-to-br from-primary to-primaryDark text-white rounded-3xl shadow-2xl rotate-y-180 flex flex-col p-6 md:p-10 overflow-y-auto">
-                        <div className="flex-1 flex flex-col justify-center">
-                            <h3 className="text-2xl md:text-4xl font-black mb-2 opacity-90 border-b border-white/20 pb-4">{currentCard.word}</h3>
-                            <p className="text-xl md:text-2xl font-medium mb-6 leading-relaxed">{currentCard.meaning}</p>
+                    <div className="absolute w-full h-full backface-hidden bg-gradient-to-br from-primary to-primaryDark text-white rounded-3xl shadow-2xl rotate-y-180 flex flex-col p-6 md:p-10 overflow-y-auto scrollbar-hide">
+                        <div className="flex flex-col min-h-full justify-center">
+                            <h3 className={`${currentCard.word.length > 30 ? 'text-lg md:text-xl' : 'text-2xl md:text-4xl'} font-black mb-2 opacity-90 border-b border-white/20 pb-4`}>{currentCard.word}</h3>
+                            <p className={`${currentCard.meaning.length > 80 ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'} font-medium mb-6 leading-relaxed`}>{currentCard.meaning}</p>
                             
                             {currentCard.synonyms && currentCard.synonyms.length > 0 && (
                                 <div className="mb-4">
@@ -1379,9 +1443,11 @@ const VocabFlashcards = ({ isPro }) => {
                                 </div>
                             )}
 
-                            <div className="bg-black/20 p-4 rounded-xl mt-auto">
-                                <p className="italic font-medium">"{currentCard.example}"</p>
-                            </div>
+                            {currentCard.example && (
+                                <div className="bg-black/20 p-4 rounded-xl mt-auto">
+                                    <p className="italic font-medium">"{currentCard.example}"</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
