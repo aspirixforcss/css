@@ -1185,8 +1185,15 @@ const VocabFlashcards = ({ isPro }) => {
                     const sheet = workbook.Sheets[sheetName];
                     const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                     
+                    let currentRule = "Rule - " + sheetName;
+
                     data.forEach(row => {
-                        if (!row || row.length < 2) return;
+                        if (!row || row.length < 2) {
+                            if (row && row.length === 1 && typeof row[0] === 'string' && row[0].toLowerCase().includes('rule')) {
+                                currentRule = row[0].trim();
+                            }
+                            return;
+                        }
                         
                         const rowStr = row.join(' ').toLowerCase();
                         if (rowStr.includes('word') && rowStr.includes('meaning')) return;
@@ -1238,7 +1245,8 @@ const VocabFlashcards = ({ isPro }) => {
                                 meaning: String(meaning).trim(),
                                 synonyms: syn,
                                 antonyms: ant,
-                                example: String(example || "").trim()
+                                example: String(example || "").trim(),
+                                rule: currentRule
                             });
                         }
                     });
@@ -1264,10 +1272,11 @@ const VocabFlashcards = ({ isPro }) => {
     const activeData = liveVocab.length > 0 ? liveVocab : (subDomain === 'GRE Vocabulary' ? sampleVocab : []);
 
     const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
-    const isFullListDomain = ['Translations', 'Idioms', 'Prepositions', 'Sentence correction'].includes(subDomain);
+    const isFullListDomain = ['Translations', 'Idioms', 'Prepositions'].includes(subDomain);
+    const sentenceRules = subDomain === 'Sentence correction' ? Array.from(new Set(activeData.map(v => v.rule))) : [];
 
     const handleStart = (category) => {
-        if (!isPro && category !== 'All' && category !== 'Random' && !['A','B','C'].includes(category)) {
+        if (!isPro && category !== 'All' && category !== 'Random' && !['A','B','C'].includes(category) && subDomain !== 'Sentence correction') {
             alert('Unlock Pro to access items for letters D to Z. Click on Past Papers or Current Affairs to see how to upgrade.');
             return;
         }
@@ -1276,6 +1285,8 @@ const VocabFlashcards = ({ isPro }) => {
             filtered = [...activeData].sort(() => 0.5 - Math.random());
         } else if (category === 'All') {
             filtered = activeData;
+        } else if (subDomain === 'Sentence correction') {
+            filtered = activeData.filter(v => v.rule === category);
         } else {
             filtered = activeData.filter(v => v.word.toUpperCase().startsWith(category));
         }
@@ -1345,7 +1356,31 @@ const VocabFlashcards = ({ isPro }) => {
                         : <><i className="fa-solid fa-circle-exclamation text-amber-500 text-lg mt-0.5"></i> <div><strong>Excel Sync Failed:</strong> {excelError} <br/><span className="text-slate-400 font-normal">{subDomain === 'GRE Vocabulary' ? `Using ${sampleVocab.length} default words.` : 'No default data available for this section.'}</span></div></>}
                 </div>
                 
-                {isFullListDomain ? (
+                {subDomain === 'Sentence correction' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin pb-10">
+                        <button 
+                            onClick={() => handleStart('Random')}
+                            disabled={activeData.length === 0}
+                            className="col-span-1 md:col-span-2 p-4 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-md flex items-center justify-center gap-3 disabled:opacity-50 mb-2"
+                        >
+                            <i className="fa-solid fa-shuffle"></i> Mix All Rules (Random Practice)
+                        </button>
+                        {sentenceRules.map((rule, idx) => {
+                            const ruleShort = rule.split(':')[0] || `Rule ${idx + 1}`;
+                            const ruleName = rule.split(':').slice(1).join(':') || rule;
+                            return (
+                                <button
+                                    key={idx}
+                                    onClick={() => handleStart(rule)}
+                                    className="p-4 rounded-2xl border-2 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-white hover:border-primary hover:text-primary shadow-sm font-bold transition-all text-left flex flex-col gap-1"
+                                >
+                                    <span className="text-primary text-sm uppercase tracking-wider">{ruleShort}</span>
+                                    <span className="w-full block font-semibold">{ruleName.trim()}</span>
+                                </button>
+                            )
+                        })}
+                    </div>
+                ) : isFullListDomain ? (
                     <div className="flex flex-col sm:flex-row gap-4 max-w-2xl">
                         <button 
                             onClick={() => handleStart('All')}
@@ -1420,17 +1455,64 @@ const VocabFlashcards = ({ isPro }) => {
                     className="w-full max-w-2xl bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 md:p-10 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 transform hover:scale-[1.01] min-h-[400px] relative overflow-hidden"
                 >
                     <div className={`w-full h-full flex flex-col items-center justify-center transition-opacity duration-300 ${flipped ? 'opacity-0 hidden' : 'opacity-100'}`}>
-                        <h3 className={`${currentCard.word.length > 50 ? 'text-2xl md:text-3xl' : 'text-5xl md:text-6xl'} font-black text-primary mb-4 leading-snug`}>{currentCard.word}</h3>
+                        {subDomain === 'Pair of words' && currentCard.word.includes('/') ? (
+                            <h3 className={`${currentCard.word.length > 50 ? 'text-2xl md:text-3xl' : 'text-4xl md:text-5xl'} font-black mb-4 leading-snug`}>
+                                <span className="text-blue-600 dark:text-blue-400">{currentCard.word.split('/')[0].trim()}</span>
+                                <span className="text-slate-300 dark:text-slate-600 mx-4">/</span>
+                                <span className="text-purple-600 dark:text-purple-400">{currentCard.word.split('/')[1].trim()}</span>
+                            </h3>
+                        ) : (
+                            <h3 className={`${currentCard.word.length > 50 ? 'text-2xl md:text-3xl' : 'text-5xl md:text-6xl'} font-black text-primary mb-4 leading-snug`}>{currentCard.word}</h3>
+                        )}
                         <p className="text-slate-400 text-sm font-semibold uppercase tracking-widest mt-8 flex items-center gap-2 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-full"><i className="fa-solid fa-hand-pointer text-primary"></i> Tap to reveal</p>
                     </div>
                     
                     <div className={`w-full h-full flex flex-col items-start justify-center transition-opacity duration-300 ${!flipped ? 'opacity-0 hidden' : 'opacity-100'} text-left overflow-y-auto scrollbar-hide`}>
-                        <h4 className={`${currentCard.word.length > 40 ? 'text-lg md:text-xl' : 'text-3xl'} font-black text-slate-800 dark:text-white mb-4 border-b-2 border-slate-100 dark:border-slate-700 pb-4 w-full text-center md:text-left leading-relaxed`}>{currentCard.word}</h4>
+                        {subDomain === 'Pair of words' && currentCard.word.includes('/') ? (
+                            <h4 className={`${currentCard.word.length > 40 ? 'text-lg md:text-xl' : 'text-2xl md:text-3xl'} font-black mb-4 border-b-2 border-slate-100 dark:border-slate-700 pb-4 w-full text-center md:text-left leading-relaxed`}>
+                                <span className="text-blue-600 dark:text-blue-400">{currentCard.word.split('/')[0].trim()}</span>
+                                <span className="text-slate-300 dark:text-slate-600 mx-3">/</span>
+                                <span className="text-purple-600 dark:text-purple-400">{currentCard.word.split('/')[1].trim()}</span>
+                            </h4>
+                        ) : (
+                            <h4 className={`${currentCard.word.length > 40 ? 'text-lg md:text-xl' : 'text-3xl'} font-black text-slate-800 dark:text-white mb-4 border-b-2 border-slate-100 dark:border-slate-700 pb-4 w-full text-center md:text-left leading-relaxed`}>{currentCard.word}</h4>
+                        )}
                         
-                        <div className="mb-6 w-full bg-blue-50 dark:bg-blue-900/10 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/20">
-                            <span className="font-bold text-blue-600 dark:text-blue-400 text-xs uppercase tracking-wider block mb-1">{subDomain === 'Translations' ? 'Translation' : (subDomain === 'Sentence correction' ? 'Correction' : 'Meaning')}</span>
-                            <p className={`${currentCard.meaning.length > 80 ? 'text-md md:text-lg' : 'text-lg md:text-xl'} font-semibold text-slate-700 dark:text-slate-200 leading-relaxed`}>{currentCard.meaning}</p>
-                        </div>
+                        {subDomain === 'Pair of words' ? (
+                            <div className="w-full flex flex-col gap-4 mb-6">
+                                {currentCard.meaning.split('\n').map((m, idx) => {
+                                    const isFirst = idx === 0;
+                                    const titleColor = isFirst ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400';
+                                    const bgColor = isFirst ? 'bg-blue-50 dark:bg-blue-900/10' : 'bg-purple-50 dark:bg-purple-900/10';
+                                    const borderColor = isFirst ? 'border-blue-100 dark:border-blue-900/20' : 'border-purple-100 dark:border-purple-900/20';
+                                    
+                                    const parts = m.split(':');
+                                    const wordPart = parts.length > 1 ? parts[0] : (isFirst ? 'Word 1' : 'Word 2');
+                                    const meaningText = parts.length > 1 ? parts.slice(1).join(':') : m;
+                                    
+                                    const exampleLine = (currentCard.example || '').split('\n')[idx] || '';
+                                    const exParts = exampleLine.split(':');
+                                    const exampleText = exParts.length > 1 ? exParts.slice(1).join(':') : exampleLine;
+
+                                    return (
+                                        <div key={idx} className={`p-4 rounded-2xl border ${bgColor} ${borderColor}`}>
+                                            <span className={`font-bold ${titleColor} text-xs uppercase tracking-wider block mb-2`}>{wordPart.trim()}</span>
+                                            <p className="text-lg md:text-xl font-semibold text-slate-700 dark:text-slate-200 leading-relaxed mb-4">{meaningText.trim()}</p>
+                                            {exampleText && exampleText.trim() && (
+                                                <div className="italic text-slate-600 dark:text-slate-400 text-sm md:text-base border-l-4 border-slate-300 dark:border-slate-600 pl-4 py-1">
+                                                    "{exampleText.trim()}"
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        ) : (
+                            <div className="mb-6 w-full bg-blue-50 dark:bg-blue-900/10 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/20">
+                                <span className="font-bold text-blue-600 dark:text-blue-400 text-xs uppercase tracking-wider block mb-1">{subDomain === 'Translations' ? 'Translation' : (subDomain === 'Sentence correction' ? 'Correction' : 'Meaning')}</span>
+                                <p className={`${currentCard.meaning.length > 80 ? 'text-md md:text-lg' : 'text-lg md:text-xl'} font-semibold text-slate-700 dark:text-slate-200 leading-relaxed`}>{currentCard.meaning}</p>
+                            </div>
+                        )}
                         
                         {(currentCard.synonyms?.length > 0 || currentCard.antonyms?.length > 0) && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-6">
@@ -1449,7 +1531,7 @@ const VocabFlashcards = ({ isPro }) => {
                             </div>
                         )}
 
-                        {currentCard.example && currentCard.example.trim().length > 0 && (
+                        {subDomain !== 'Pair of words' && currentCard.example && currentCard.example.trim().length > 0 && (
                             <div className="w-full bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl italic text-slate-600 dark:text-slate-300 border-l-4 border-primary mt-auto">
                                 "{currentCard.example}"
                             </div>
