@@ -1116,6 +1116,7 @@ const TemplateView = ({ title, description, icon }) => (
 
 
 const VocabFlashcards = ({ isPro }) => {
+    const [subDomain, setSubDomain] = useState('GRE Vocabulary');
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [flipped, setFlipped] = useState(false);
@@ -1124,9 +1125,34 @@ const VocabFlashcards = ({ isPro }) => {
     const [liveVocab, setLiveVocab] = useState([]);
     const [isFetchingExcel, setIsFetchingExcel] = useState(true);
     const [excelError, setExcelError] = useState(null);
+    const [cachedData, setCachedData] = useState({});
+
+    const domains = ["GRE Vocabulary", "Pair of words", "Idioms", "Sentence correction", "Prepositions", "Translations"];
+
+    const getFilePattern = (domain) => {
+        switch(domain) {
+            case 'GRE Vocabulary': return 'gre';
+            case 'Pair of words': return 'pair';
+            case 'Idioms': return 'idiom';
+            case 'Sentence correction': return 'sentence';
+            case 'Prepositions': return 'preposition';
+            case 'Translations': return 'translation';
+            default: return 'gre';
+        }
+    };
 
     useEffect(() => {
+        if (cachedData[subDomain]) {
+            setLiveVocab(cachedData[subDomain]);
+            setIsFetchingExcel(false);
+            setExcelError(null);
+            return;
+        }
+
         const fetchExcel = async () => {
+            setIsFetchingExcel(true);
+            setExcelError(null);
+            setLiveVocab([]);
             try {
                 const API_KEY = 'AIzaSyBRb_sUPTEQDnHi223Kwld4JHKM-5K9000';
                 const FOLDER_ID = '1fiaZu0HaW-hcclXv5jx7gJG-z2bKwOgw';
@@ -1136,8 +1162,10 @@ const VocabFlashcards = ({ isPro }) => {
                 
                 if (searchData.error) throw new Error(searchData.error.message);
                 
-                const file = searchData.files.find(f => f.name.toLowerCase().includes('gre') || f.name.toLowerCase().includes('vocab') || f.mimeType === 'application/vnd.google-apps.spreadsheet' || f.name.includes('.xlsx'));
-                if (!file) throw new Error("Could not find 'GRE frequent words' Excel file in your Drive folder.");
+                const pattern = getFilePattern(subDomain);
+                const file = searchData.files.find(f => f.name.toLowerCase().includes(pattern));
+                
+                if (!file) throw new Error(`Could not find Excel file for ${subDomain} in your Drive folder.`);
 
                 let fileUrl;
                 if (file.mimeType === 'application/vnd.google-apps.spreadsheet') {
@@ -1158,16 +1186,17 @@ const VocabFlashcards = ({ isPro }) => {
                     const data = XLSX.utils.sheet_to_json(sheet);
                     
                     data.forEach(row => {
-                        const word = row.Word || row.word || row.WORD || "";
-                        if (word.trim()) {
+                        const vals = Object.values(row);
+                        const word = row.Word || row.word || row.WORD || row.Idiom || row.idiom || row.Phrase || row.phrase || row.Sentence || row.sentence || row.Preposition || row.preposition || vals[0] || "";
+                        if (word && word.toString().trim()) {
                             const syn = row.Synonyms || row.synonyms || row.SYNONYMS || "";
                             const ant = row.Antonyms || row.antonyms || row.ANTONYMS || "";
                             allVocab.push({
-                                word: word.trim(),
-                                meaning: row.Meaning || row.meaning || row.MEANING || "No meaning provided",
+                                word: word.toString().trim(),
+                                meaning: row.Meaning || row.meaning || row.MEANING || row.Correction || row.correction || row.Translation || row.translation || row.Rule || row.rule || vals[1] || "No meaning provided",
                                 synonyms: syn ? syn.toString().split(',').map(s=>s.trim()).filter(Boolean) : [],
                                 antonyms: ant ? ant.toString().split(',').map(s=>s.trim()).filter(Boolean) : [],
-                                example: row.Example || row.example || row.EXAMPLE || "No example provided"
+                                example: row.Example || row.example || row.EXAMPLE || vals[2] || "No example provided"
                             });
                         }
                     });
@@ -1175,26 +1204,28 @@ const VocabFlashcards = ({ isPro }) => {
                 
                 if (allVocab.length > 0) {
                     setLiveVocab(allVocab);
+                    setCachedData(prev => ({ ...prev, [subDomain]: allVocab }));
                 } else {
-                    throw new Error("No valid words found in the Excel sheet columns (Ensure column is named 'Word').");
+                    throw new Error(`No valid items found in the Excel sheet for ${subDomain}.`);
                 }
             } catch (err) {
                 console.error("Excel fetch failed, using fallback:", err);
                 setExcelError(err.message);
+                setLiveVocab([]);
             } finally {
                 setIsFetchingExcel(false);
             }
         };
         fetchExcel();
-    }, []);
+    }, [subDomain, cachedData]);
 
-    const activeData = liveVocab.length > 0 ? liveVocab : sampleVocab;
+    const activeData = liveVocab.length > 0 ? liveVocab : (subDomain === 'GRE Vocabulary' ? sampleVocab : []);
 
     const letters = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
 
     const handleStart = (category) => {
         if (!isPro && !['A','B','C'].includes(category)) {
-            alert('Unlock Pro to access vocabulary for letters D to Z. Click on Past Papers or Current Affairs to see how to upgrade.');
+            alert('Unlock Pro to access items for letters D to Z. Click on Past Papers or Current Affairs to see how to upgrade.');
             return;
         }
         let filtered = [];
@@ -1217,12 +1248,12 @@ const VocabFlashcards = ({ isPro }) => {
     };
     const availableLetters = getAvailableLetters();
 
-    if (isFetchingExcel) {
+    if (isFetchingExcel && !cachedData[subDomain]) {
         return (
             <div className="max-w-6xl mx-auto p-4 md:p-8 flex flex-col items-center justify-center h-[70vh] animate-fade-in text-center">
                 <i className="fa-solid fa-cloud-arrow-down text-primary animate-bounce text-6xl mb-6"></i>
                 <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Syncing Live Excel Data...</h2>
-                <p className="text-slate-500 mt-2">Connecting to your Google Drive folder...</p>
+                <p className="text-slate-500 mt-2">Fetching ${subDomain} from Google Drive...</p>
             </div>
         );
     }
@@ -1230,27 +1261,41 @@ const VocabFlashcards = ({ isPro }) => {
     if (!selectedCategory) {
         return (
             <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in w-full pb-32">
-                <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">Vocabulary Flashcards</h2>
+                <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-6">Study Flashcards</h2>
+                
+                {/* Domain Tabs */}
+                <div className="flex gap-2 overflow-x-auto mb-6 pb-2 scrollbar-hide">
+                    {domains.map(tab => (
+                        <button 
+                            key={tab} 
+                            onClick={() => { setSubDomain(tab); setSelectedCategory(null); }} 
+                            className={`px-5 py-2 rounded-full font-bold whitespace-nowrap transition-all ${subDomain === tab ? 'bg-primary text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </div>
+
                 <div className="mb-8 p-4 rounded-xl border flex items-start gap-3 text-sm font-medium bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
                     {liveVocab.length > 0 
-                        ? <><i className="fa-solid fa-circle-check text-green-500 text-lg mt-0.5"></i> <div>Live Synced from Excel: <strong className="text-green-600 dark:text-green-400">{liveVocab.length} words</strong> loaded!</div>
-
-                {/* New GRE Copy */}
-                <div className="mt-4 mb-6 p-4 max-w-4xl bg-gradient-to-br from-white to-slate-50 dark:from-surfaceDark dark:to-slate-900/80 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden animate-fade-in mx-auto">
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
-                    <div className="flex gap-3 items-start">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <i className="fa-solid fa-rocket text-primary text-sm"></i>
-                        </div>
-                        <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed text-sm md:text-base">
-                            These are the most important GRE words you need to know. <br/>
-                            Every single word comes with <strong className="text-slate-900 dark:text-white">3 powerful synonyms</strong> and <strong className="text-slate-900 dark:text-white">3 strong antonyms</strong>. <br/>
-                            Master this list and you’ll multiply your vocabulary by at least <strong className="text-primary font-black text-lg">5×</strong> — turning just <span className="text-primary font-black">{liveVocab.length} words</span> into a massive 3000 plus words.
-                        </p>
-                    </div>
-                </div>
-</>
-                        : <><i className="fa-solid fa-circle-exclamation text-amber-500 text-lg mt-0.5"></i> <div><strong>Excel Sync Failed:</strong> {excelError} <br/><span className="text-slate-400 font-normal">Using {sampleVocab.length} default words. (Did you change your Google Drive folder access to "Anyone with the link"?)</span></div></>}
+                        ? <><i className="fa-solid fa-circle-check text-green-500 text-lg mt-0.5"></i> <div>Live Synced from Excel: <strong className="text-green-600 dark:text-green-400">{liveVocab.length} items</strong> loaded for {subDomain}!</div>
+                          {subDomain === 'GRE Vocabulary' && (
+                              <div className="mt-4 mb-2 p-4 max-w-4xl bg-gradient-to-br from-white to-slate-50 dark:from-surfaceDark dark:to-slate-900/80 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden animate-fade-in">
+                                  <div className="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
+                                  <div className="flex gap-3 items-start">
+                                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                          <i className="fa-solid fa-rocket text-primary text-sm"></i>
+                                      </div>
+                                      <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed text-sm md:text-base">
+                                          These are the most important GRE words you need to know. <br/>
+                                          Every single word comes with <strong className="text-slate-900 dark:text-white">3 powerful synonyms</strong> and <strong className="text-slate-900 dark:text-white">3 strong antonyms</strong>. <br/>
+                                          Master this list and you'll multiply your vocabulary by at least <strong className="text-primary font-black text-lg">5X</strong> - turning just <span className="text-primary font-black">{liveVocab.length} words</span> into a massive collection.
+                                      </p>
+                                  </div>
+                              </div>
+                          )}
+                          </>
+                        : <><i className="fa-solid fa-circle-exclamation text-amber-500 text-lg mt-0.5"></i> <div><strong>Excel Sync Failed:</strong> {excelError} <br/><span className="text-slate-400 font-normal">{subDomain === 'GRE Vocabulary' ? `Using ${sampleVocab.length} default words.` : 'No default data available for this section.'}</span></div></>}
                 </div>
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -1280,230 +1325,90 @@ const VocabFlashcards = ({ isPro }) => {
         );
     }
 
-    const handleNext = () => {
-        setFlipped(false);
-        setCurrentIndex((prev) => (prev + 1) % deck.length);
-    };
-
-    const handlePrev = () => {
-        setFlipped(false);
-        setCurrentIndex((prev) => (prev - 1 + deck.length) % deck.length);
-    };
-
-    const card = deck[currentIndex];
+    const currentCard = deck[currentIndex];
 
     return (
-        <div className="max-w-4xl mx-auto p-4 md:p-8 animate-fade-in w-full h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between mb-8">
-                <button onClick={() => setSelectedCategory(null)} className="text-slate-500 hover:text-primary font-bold flex items-center gap-2 transition-colors">
-                    <i className="fa-solid fa-arrow-left"></i> Exit Series
+        <div className="max-w-4xl mx-auto p-4 md:p-8 animate-fade-in pb-32">
+            <div className="flex justify-between items-center mb-8">
+                <button 
+                    onClick={() => setSelectedCategory(null)}
+                    className="text-slate-500 hover:text-slate-800 dark:hover:text-white font-bold flex items-center gap-2 transition-colors"
+                >
+                    <i className="fa-solid fa-arrow-left"></i> Back to Categories
                 </button>
-                <div className="font-bold text-primary bg-primary/10 px-4 py-1.5 rounded-lg border border-primary/20">
-                    {selectedCategory === 'Random' ? 'Random Mix' : `${selectedCategory} Series`}
+                <div className="text-slate-500 font-bold bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full text-sm">
+                    {subDomain} | {selectedCategory} Series : {currentIndex + 1} / {deck.length}
                 </div>
             </div>
-            
-            <div className="flex-1 flex flex-col items-center justify-center mb-10 w-full">
-                <div 
-                    onClick={() => setFlipped(!flipped)}
-                    className="w-full max-w-2xl bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 md:p-10 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 transform hover:scale-[1.01] min-h-[400px] relative overflow-hidden"
-                >
-                    <div className={`w-full h-full flex flex-col items-center justify-center transition-opacity duration-300 ${flipped ? 'opacity-0 hidden' : 'opacity-100'}`}>
-                        <h3 className="text-5xl md:text-6xl font-black text-primary mb-4">{card.word}</h3>
-                        <p className="text-slate-400 text-sm font-semibold uppercase tracking-widest mt-8 flex items-center gap-2 bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-full"><i className="fa-solid fa-hand-pointer text-primary"></i> Tap to reveal</p>
+
+            <div 
+                className="w-full aspect-[4/3] md:aspect-[2/1] relative perspective-1000 cursor-pointer group"
+                onClick={() => setFlipped(!flipped)}
+            >
+                <div className={`w-full h-full transition-transform duration-500 transform-style-3d ${flipped ? 'rotate-y-180' : ''}`}>
+                    {/* Front */}
+                    <div className="absolute w-full h-full backface-hidden bg-white dark:bg-surfaceDark rounded-3xl border-2 border-slate-200 dark:border-slate-700 shadow-xl flex flex-col items-center justify-center p-8 text-center">
+                        <div className="absolute top-6 right-6 text-slate-300 dark:text-slate-600">
+                            <i className="fa-solid fa-hand-pointer animate-pulse text-xl"></i>
+                        </div>
+                        <h3 className="text-4xl md:text-6xl font-black text-slate-800 dark:text-white mb-4 tracking-tight">{currentCard.word}</h3>
+                        <p className="text-slate-400 font-medium">Click to reveal details</p>
                     </div>
                     
-                    <div className={`w-full h-full flex flex-col items-start justify-center transition-opacity duration-300 ${!flipped ? 'opacity-0 hidden' : 'opacity-100'} text-left`}>
-                        <h4 className="text-3xl font-black text-slate-800 dark:text-white mb-4 border-b-2 border-slate-100 dark:border-slate-700 pb-4 w-full text-center md:text-left">{card.word}</h4>
-                        
-                        <div className="mb-6 w-full bg-blue-50 dark:bg-blue-900/10 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/20">
-                            <span className="font-bold text-blue-600 dark:text-blue-400 text-xs uppercase tracking-wider block mb-1">Meaning</span>
-                            <p className="text-lg font-semibold text-slate-700 dark:text-slate-200">{card.meaning}</p>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-6">
-                            <div className="bg-green-50 dark:bg-green-900/10 p-4 rounded-2xl border border-green-100 dark:border-green-900/20">
-                                <span className="font-bold text-green-600 dark:text-green-400 text-xs uppercase tracking-wider block mb-1">Synonyms</span>
-                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{card.synonyms?.join(', ') || 'N/A'}</p>
-                            </div>
-                            <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-2xl border border-red-100 dark:border-red-900/20">
-                                <span className="font-bold text-red-600 dark:text-red-400 text-xs uppercase tracking-wider block mb-1">Antonyms</span>
-                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{card.antonyms?.join(', ') || 'N/A'}</p>
-                            </div>
-                        </div>
-
-                        <div className="w-full bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl italic text-slate-600 dark:text-slate-300 border-l-4 border-primary">
-                            "{card.example}"
-                        </div>
-                    </div>
-                </div>
-                
-                <div className="flex items-center gap-6 mt-10">
-                    <button onClick={handlePrev} className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white transition-all flex items-center justify-center shadow-md text-xl transform hover:scale-110 active:scale-95">
-                        <i className="fa-solid fa-arrow-left"></i>
-                    </button>
-                    <span className="font-bold text-slate-500 text-lg bg-slate-100 dark:bg-slate-800 px-6 py-2 rounded-full shadow-inner">{currentIndex + 1} / {deck.length}</span>
-                    <button onClick={handleNext} className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white transition-all flex items-center justify-center shadow-md text-xl transform hover:scale-110 active:scale-95">
-                        <i className="fa-solid fa-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
-
-
-const SubjectWiseMCQs = ({ selectedSubjects }) => {
-    const [activeSubject, setActiveSubject] = useState(null);
-    const [quizStarted, setQuizStarted] = useState(false);
-    const [currentQ, setCurrentQ] = useState(0);
-    const [score, setScore] = useState(0);
-    const [showResult, setShowResult] = useState(false);
-    const [selectedOption, setSelectedOption] = useState(null);
-    const [showExplanation, setShowExplanation] = useState(false);
-
-    const activeSubs = [...compulsorySubjects, ...optionalSubjects]
-        .filter(s => s.id !== 'comp_essay' && (compulsorySubjects.some(c => c.id === s.id) || selectedSubjects.includes(s.id)));
-
-    const questions = activeSubject && sampleMcqs[activeSubject] ? sampleMcqs[activeSubject] : [];
-
-    const handleStart = (subId) => {
-        setActiveSubject(subId);
-        setQuizStarted(true);
-        setCurrentQ(0);
-        setScore(0);
-        setShowResult(false);
-        setSelectedOption(null);
-        setShowExplanation(false);
-    };
-
-    const handleAnswer = (idx) => {
-        if (selectedOption !== null) return;
-        setSelectedOption(idx);
-        if (idx === questions[currentQ].answer) setScore(s => s + 1);
-        setShowExplanation(true);
-    };
-
-    const handleNextQ = () => {
-        if (currentQ + 1 < questions.length) {
-            setCurrentQ(c => c + 1);
-            setSelectedOption(null);
-            setShowExplanation(false);
-        } else {
-            setShowResult(true);
-        }
-    };
-
-    if (!quizStarted) {
-        return (
-            <div className="max-w-6xl mx-auto p-4 md:p-8 animate-fade-in w-full pb-32">
-                <h2 className="text-3xl font-extrabold text-slate-800 dark:text-white mb-2">Subject-wise MCQs</h2>
-                <p className="text-slate-500 dark:text-slate-400 mb-8">Test your knowledge with up to 20 MCQs per quiz. Essay paper is excluded.</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {activeSubs.map(sub => {
-                        const hasData = !!sampleMcqs[sub.id];
-                        return (
-                            <div key={sub.id} onClick={() => hasData && handleStart(sub.id)} className={`p-6 rounded-3xl border transition-all ${hasData ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-primary hover:shadow-md cursor-pointer' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800 opacity-60 cursor-not-allowed'}`}>
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${hasData ? 'bg-primary/10 text-primary' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
-                                    <i className="fa-solid fa-list-check text-xl"></i>
+                    {/* Back */}
+                    <div className="absolute w-full h-full backface-hidden bg-gradient-to-br from-primary to-primaryDark text-white rounded-3xl shadow-2xl rotate-y-180 flex flex-col p-6 md:p-10 overflow-y-auto">
+                        <div className="flex-1 flex flex-col justify-center">
+                            <h3 className="text-2xl md:text-4xl font-black mb-2 opacity-90 border-b border-white/20 pb-4">{currentCard.word}</h3>
+                            <p className="text-xl md:text-2xl font-medium mb-6 leading-relaxed">{currentCard.meaning}</p>
+                            
+                            {currentCard.synonyms && currentCard.synonyms.length > 0 && (
+                                <div className="mb-4">
+                                    <h4 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-2">Synonyms</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {currentCard.synonyms.map((s,i) => <span key={i} className="px-3 py-1 bg-white/10 rounded-full text-sm font-medium">{s}</span>)}
+                                    </div>
                                 </div>
-                                <h3 className="font-bold text-slate-800 dark:text-white mb-2">{sub.name}</h3>
-                                <p className="text-sm font-semibold text-slate-400 mb-4">{hasData ? `${sampleMcqs[sub.id].length} MCQs Available` : 'No MCQs Added Yet'}</p>
-                                {hasData ? (
-                                    <div className="text-primary font-bold text-sm flex items-center gap-2">Start Quiz <i className="fa-solid fa-arrow-right"></i></div>
-                                ) : (
-                                    <div className="text-slate-400 text-xs italic">Add to data.js to enable</div>
-                                )}
+                            )}
+                            
+                            {currentCard.antonyms && currentCard.antonyms.length > 0 && (
+                                <div className="mb-6">
+                                    <h4 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-2">Antonyms</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {currentCard.antonyms.map((a,i) => <span key={i} className="px-3 py-1 bg-black/10 rounded-full text-sm font-medium">{a}</span>)}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="bg-black/20 p-4 rounded-xl mt-auto">
+                                <p className="italic font-medium">"{currentCard.example}"</p>
                             </div>
-                        );
-                    })}
-                </div>
-                <div className="mt-8 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-300">
-                    <i className="fa-solid fa-lightbulb mr-2"></i> To add MCQs for more subjects, open <strong>src/app/data.js</strong> and add questions into the <strong>sampleMcqs</strong> object using the subject's ID.
-                </div>
-            </div>
-        );
-    }
-
-    if (showResult) {
-        const percentage = Math.round((score / questions.length) * 100);
-        return (
-            <div className="max-w-3xl mx-auto p-4 md:p-8 animate-fade-in w-full text-center mt-10">
-                <div className="w-32 h-32 mx-auto bg-green-100 dark:bg-green-900/30 text-green-500 rounded-full flex items-center justify-center text-6xl mb-6">
-                    <i className="fa-solid fa-trophy"></i>
-                </div>
-                <h2 className="text-4xl font-extrabold text-slate-800 dark:text-white mb-2">Quiz Completed!</h2>
-                <p className="text-slate-500 text-lg mb-8">You scored {score} out of {questions.length} ({percentage}%)</p>
-                <div className="flex justify-center gap-4">
-                    <button onClick={() => setQuizStarted(false)} className="px-8 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-white font-bold rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
-                        Back to Subjects
-                    </button>
-                    <button onClick={() => handleStart(activeSubject)} className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors">
-                        Try Again
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    const q = questions[currentQ];
-
-    return (
-        <div className="max-w-4xl mx-auto p-4 md:p-8 animate-fade-in w-full">
-            <button onClick={() => setQuizStarted(false)} className="mb-6 text-slate-500 hover:text-primary font-bold flex items-center gap-2">
-                <i className="fa-solid fa-arrow-left"></i> Exit Quiz
-            </button>
-            
-            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
-                <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100 dark:border-slate-700">
-                    <div className="font-bold text-slate-500">Question {currentQ + 1} of {questions.length}</div>
-                    <div className="font-bold text-primary bg-primary/10 px-4 py-1.5 rounded-lg">Score: {score}</div>
-                </div>
-                
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-8 leading-relaxed">{q.q}</h3>
-                
-                <div className="space-y-4 mb-8">
-                    {q.options.map((opt, idx) => {
-                        let btnClass = "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-primary hover:bg-primary/5";
-                        
-                        if (selectedOption !== null) {
-                            if (idx === q.answer) btnClass = "bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-400";
-                            else if (idx === selectedOption) btnClass = "bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-400";
-                            else btnClass = "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-400 opacity-50";
-                        }
-                        
-                        return (
-                            <button 
-                                key={idx} 
-                                onClick={() => handleAnswer(idx)}
-                                disabled={selectedOption !== null}
-                                className={`w-full text-left p-4 rounded-2xl border-2 font-semibold transition-all ${btnClass}`}
-                            >
-                                <span className="inline-block w-8 h-8 rounded-lg bg-white dark:bg-slate-800 shadow-sm text-center leading-8 mr-4 text-slate-500">{String.fromCharCode(65 + idx)}</span>
-                                {opt}
-                            </button>
-                        );
-                    })}
-                </div>
-                
-                {showExplanation && (
-                    <div className="flex justify-end animate-fade-in">
-                        <button onClick={handleNextQ} className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors flex items-center gap-2">
-                            {currentQ + 1 < questions.length ? 'Next Question' : 'View Results'} <i className="fa-solid fa-arrow-right"></i>
-                        </button>
+                        </div>
                     </div>
-                )}
+                </div>
+            </div>
+
+            <div className="flex justify-between items-center mt-8">
+                <button 
+                    onClick={() => { setFlipped(false); setTimeout(() => setCurrentIndex(prev => Math.max(0, prev - 1)), 150); }}
+                    disabled={currentIndex === 0}
+                    className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-primary hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-slate-100 disabled:hover:text-slate-600"
+                >
+                    <i className="fa-solid fa-arrow-left text-xl"></i>
+                </button>
+                <div className="text-slate-400 font-bold">
+                    Use arrows to navigate
+                </div>
+                <button 
+                    onClick={() => { setFlipped(false); setTimeout(() => setCurrentIndex(prev => Math.min(deck.length - 1, prev + 1)), 150); }}
+                    disabled={currentIndex === deck.length - 1}
+                    className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-primary hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-slate-100 disabled:hover:text-slate-600"
+                >
+                    <i className="fa-solid fa-arrow-right text-xl"></i>
+                </button>
             </div>
         </div>
     );
 };
-
-
-
-
 const AboutView = () => (
     <div className="max-w-4xl mx-auto p-6 md:p-10 bg-white dark:bg-surfaceDark rounded-3xl shadow-xl mt-10">
         <h2 className="text-3xl font-black mb-6 border-b pb-4 border-slate-100 dark:border-slate-800">About Aspirix</h2>
@@ -1549,6 +1454,7 @@ const DisclaimerView = () => (
 
 const PremiumUpgradeView = ({ onUpgrade, user }) => {
     const [trxId, setTrxId] = useState('');
+    const [regEmail, setRegEmail] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [msg, setMsg] = useState({ type: '', text: '' });
     const [existingTrx, setExistingTrx] = useState(null);
@@ -1572,7 +1478,7 @@ const PremiumUpgradeView = ({ onUpgrade, user }) => {
     }, [user]);
 
     const handleSubmitTrx = async () => {
-        if (!trxId.trim()) return;
+        if (!trxId.trim() || !regEmail.trim()) return;
         setSubmitting(true);
         setMsg({ type: '', text: '' });
         
@@ -1582,6 +1488,7 @@ const PremiumUpgradeView = ({ onUpgrade, user }) => {
             const userRef = doc(db, 'users', user.uid);
             await setDoc(userRef, {
                 pendingTrx: trxId.trim(),
+                pendingEmail: regEmail.trim(),
                 pendingTrxDate: new Date().toISOString()
             }, { merge: true });
             
@@ -1637,21 +1544,30 @@ const PremiumUpgradeView = ({ onUpgrade, user }) => {
                         <h3 className="font-bold text-slate-800 dark:text-white mb-2 text-sm sm:text-base">Step 2: Verify Payment</h3>
                         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-4">After sending the payment, enter your Transaction ID (Trx ID) below:</p>
                         
-                        <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex flex-col gap-3">
                             <input 
-                                type="text" 
-                                placeholder="Enter Trx ID (e.g. 123456789)" 
-                                className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:border-primary font-mono text-sm" 
-                                value={trxId} 
-                                onChange={e => setTrxId(e.target.value)} 
+                                type="email" 
+                                placeholder="Registered Email Address" 
+                                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:border-primary font-mono text-sm" 
+                                value={regEmail} 
+                                onChange={e => setRegEmail(e.target.value)} 
                             />
-                            <button 
-                                onClick={handleSubmitTrx} 
-                                disabled={submitting || !trxId.trim()} 
-                                className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 whitespace-nowrap text-sm"
-                            >
-                                {submitting ? (<span><i className="fa-solid fa-spinner fa-spin mr-2"></i>Submitting...</span>) : 'Submit Trx ID'}
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <input 
+                                    type="text" 
+                                    placeholder="Enter Trx ID (e.g. 123456789)" 
+                                    className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:border-primary font-mono text-sm" 
+                                    value={trxId} 
+                                    onChange={e => setTrxId(e.target.value)} 
+                                />
+                                <button 
+                                    onClick={handleSubmitTrx} 
+                                    disabled={submitting || !trxId.trim() || !regEmail.trim()} 
+                                    className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 whitespace-nowrap text-sm"
+                                >
+                                    {submitting ? (<span><i className="fa-solid fa-spinner fa-spin mr-2"></i>Submitting...</span>) : 'Submit Info'}
+                                </button>
+                            </div>
                         </div>
                     </>
                 )}
@@ -2059,7 +1975,27 @@ const App = () => {
                             setSelectedSubjects(data.selectedSubjects);
                             if (data.completedTopics) setCompletedTopics(data.completedTopics);
                             if (data.facts) setFacts(data.facts);
-                            if (data.dailyStreak) setDailyStreak(data.dailyStreak);
+                            if (data.dailyStreak !== undefined) {
+                                  let currentStreak = data.dailyStreak;
+                                  const today = new Date().toDateString();
+                                  if (data.lastVisitDate !== today) {
+                                      if (data.lastVisitDate) {
+                                          const lastDate = new Date(data.lastVisitDate);
+                                          const todayDate = new Date();
+                                          lastDate.setHours(0,0,0,0);
+                                          todayDate.setHours(0,0,0,0);
+                                          const diffDays = Math.ceil(Math.abs(todayDate - lastDate) / (1000 * 60 * 60 * 24));
+                                          if (diffDays === 1) {
+                                              currentStreak += 1;
+                                          } else if (diffDays > 1) {
+                                              currentStreak = 1;
+                                          }
+                                      } else {
+                                          currentStreak = 1;
+                                      }
+                                  }
+                                  setDailyStreak(currentStreak);
+                              }
                             if (data.targetYear) setTargetYear(data.targetYear);
                             if (data.isPro) {
                                 const now = Date.now();
@@ -2151,7 +2087,8 @@ const App = () => {
                     isPro,
                     plan,
                     proExpiresAt,
-                    lastUpdate: new Date()
+                    lastUpdate: new Date(),
+                        lastVisitDate: new Date().toDateString()
                 }, { merge: true });
             } catch (err) {
                 console.error("Firestore Save Error:", err);
