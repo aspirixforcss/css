@@ -1135,7 +1135,7 @@ const SubjectWiseMCQs = ({ selectedSubjects }) => {
     const [userAnswers, setUserAnswers] = useState([]);
 
     // IMPORTANT: User must provide the Folder ID of "CSS mix data"
-    const CSS_MIX_DATA_FOLDER_ID = 'YOUR_CSS_MIX_DATA_FOLDER_ID_HERE';
+    const CSS_MIX_DATA_FOLDER_ID = '1pnGhh6ZOEJp0yMNuedAR50-aEcJL5bjY';
 
     const activeSubs = [...compulsorySubjects, ...optionalSubjects]
         .filter(s => s.id !== 'comp_essay' && (compulsorySubjects.some(c => c.id === s.id) || selectedSubjects.includes(s.id)));
