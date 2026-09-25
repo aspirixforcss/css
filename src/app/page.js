@@ -1137,8 +1137,21 @@ const SubjectWiseMCQs = ({ selectedSubjects }) => {
     // IMPORTANT: User must provide the Folder ID of "CSS mix data"
     const CSS_MIX_DATA_FOLDER_ID = '1pnGhh6ZOEJp0yMNuedAR50-aEcJL5bjY';
 
-    const activeSubs = [...compulsorySubjects, ...optionalSubjects]
+    const baseActiveSubs = [...compulsorySubjects, ...optionalSubjects]
         .filter(s => s.id !== 'comp_essay' && (compulsorySubjects.some(c => c.id === s.id) || selectedSubjects.includes(s.id)));
+        
+    let activeSubs = [];
+    baseActiveSubs.forEach(sub => {
+        if (sub.id === 'ir') {
+            activeSubs.push({ ...sub, id: 'ir_1', name: 'International Relations Paper-I' });
+            activeSubs.push({ ...sub, id: 'ir_2', name: 'International Relations Paper-II' });
+        } else if (sub.id === 'polsci') {
+            activeSubs.push({ ...sub, id: 'polsci_1', name: 'Political Science Paper-I' });
+            activeSubs.push({ ...sub, id: 'polsci_2', name: 'Political Science Paper-II' });
+        } else {
+            activeSubs.push(sub);
+        }
+    });
 
     const fetchSubjectData = async (subject) => {
         setIsFetching(true);
@@ -1169,6 +1182,13 @@ const SubjectWiseMCQs = ({ selectedSubjects }) => {
                 
                 targetFile = subData.files?.find(f => {
                     const fn = f.name.toLowerCase();
+                    if (fn.includes('[old')) return false;
+                    
+                    // For subjects like "International Relations Paper-I", require all parts to match roughly
+                    const allMatch = searchKeywords.every(kw => fn.includes(kw));
+                    if (allMatch) return true;
+                    
+                    // Fallback to partial match if exact multi-word match fails
                     return searchKeywords.some(kw => fn.includes(kw));
                 });
                 
@@ -2336,6 +2356,10 @@ const SettingsModal = ({ isOpen, onClose, onChangeSubjects, onSignOut, isPro, pl
                             <span className="flex items-center"><i className="fa-solid fa-book-open w-6 text-slate-400 group-hover:text-primary transition-colors"></i> Change Subjects</span>
                             <i className="fa-solid fa-chevron-right text-sm opacity-50 group-hover:translate-x-1 transition-transform"></i>
                         </button>
+                        <a href="mailto:myproducts505@gmail.com?subject=Support Request - CSS Prep App" className="w-full flex items-center justify-between p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors font-bold text-left group">
+                            <span className="flex items-center"><i className="fa-solid fa-envelope w-6 text-blue-400 group-hover:text-blue-500 transition-colors"></i> Email Support / Report Bug</span>
+                            <i className="fa-solid fa-chevron-right text-sm opacity-50 group-hover:translate-x-1 transition-transform"></i>
+                        </a>
                         <button onClick={() => { onClose(); onSignOut(); }} className="w-full flex items-center justify-between p-4 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors font-bold text-left group">
                             <span className="flex items-center"><i className="fa-solid fa-right-from-bracket w-6 text-red-400 group-hover:text-red-500 transition-colors"></i> Sign Out</span>
                             <i className="fa-solid fa-chevron-right text-sm opacity-50 group-hover:translate-x-1 transition-transform"></i>
