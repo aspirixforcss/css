@@ -1228,7 +1228,11 @@ const SubjectWiseMCQs = ({ selectedSubjects }) => {
         
         const processed = selected.map(q => {
             let correctIdx = 0;
-            const ansStr = String(q.answer).trim().toUpperCase();
+            let ansStr = String(q.answer).trim().toUpperCase();
+            
+            // Clean prefixes like "Option A" -> "A"
+            ansStr = ansStr.replace(/^OPTION\s*-?\s*/i, '').replace(/^OPT\s*-?\s*/i, '').trim();
+
             if (['A','B','C','D'].includes(ansStr)) {
                 correctIdx = ansStr.charCodeAt(0) - 65;
             } else if (ansStr === '1' || ansStr === '2' || ansStr === '3' || ansStr === '4') {
