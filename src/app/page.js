@@ -2483,9 +2483,30 @@ const ImportantDataView = () => {
             const result = await mammoth.convertToHtml({ arrayBuffer });
             
             let html = result.value;
-            // Make "Case in point" appear small and secondary
-            html = html.replace(/(case in point[:\\-]?\\s*)/gi, '<span class="text-sm font-normal text-slate-500 italic">$1</span>');
+            // Format essay outline elements according to requested typography
+            // 1. Main Headers (e.g., "1. Introduction", "Outline", "Essay")
+            html = html.replace(/<p><strong>(Outline|Essay|Introduction|Conclusion|\d+\.\s*.*?)<\/strong><\/p>/gi, (match, text) => {
+                return `<p class="text-[22px] font-black text-blue-700 dark:text-blue-400 mt-10 mb-4 ml-0">${text}</p>`;
+            });
+
+            // 2. Sub Headers (List items)
+            html = html.replace(/<ul>\s*<li>\s*<strong>([\s\S]*?)<\/strong>\s*<\/li>\s*<\/ul>/gi, (match, text) => {
+                return `<ul class="list-disc ml-6 mt-4 mb-2"><li class="text-[17px] font-bold text-slate-800 dark:text-slate-200">${text}</li></ul>`;
+            });
+
+            // 3. Case in point (various mammoth formats)
+            const caseInPointClass = "text-[15px] font-medium text-slate-500 dark:text-slate-400 italic ml-12 mt-2 mb-6 border-l-2 border-slate-300 dark:border-slate-600 pl-4";
             
+            html = html.replace(/<p><strong>Case in point[:\-]?\s*<\/strong>([\s\S]*?)<\/p>/gi, (match, text) => {
+                return `<p class="${caseInPointClass}">Case in Point: ${text}</p>`;
+            });
+            html = html.replace(/<p><strong>Case in point[:\-]?\s*([\s\S]*?)<\/strong><\/p>/gi, (match, text) => {
+                return `<p class="${caseInPointClass}">Case in Point: ${text}</p>`;
+            });
+            html = html.replace(/<p>\s*Case in point[:\-]?\s*([\s\S]*?)<\/p>/gi, (match, text) => {
+                return `<p class="${caseInPointClass}">Case in Point: ${text}</p>`;
+            });
+
             setEssayContent(html);
         } catch (err) {
             console.error("Error opening essay:", err);
