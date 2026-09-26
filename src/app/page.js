@@ -273,17 +273,17 @@ const Sidebar = ({ currentView, setCurrentView, user, isPro, proExpiresAt, plan,
         { id: 'syllabus', icon: 'fa-solid fa-book-open', label: 'Syllabus Tracker' },
         { id: 'timetable', icon: 'fa-solid fa-calendar-days', label: 'Timetable' },
         { id: 'pastpapers', icon: 'fa-solid fa-file-pdf', label: 'Past Papers' },
+        { id: 'important_data', icon: 'fa-solid fa-box-archive', label: 'Important Data' },
         { id: 'currentaffairs', icon: 'fa-solid fa-fire', label: 'Current Affairs', pro: true },
         { id: 'mcqs', icon: 'fa-solid fa-list-check', label: 'Subject MCQs', pro: true },
         { id: 'vocab', icon: 'fa-solid fa-spell-check', label: 'Vocab Flashcards' },
         { id: 'mptmock', icon: 'fa-solid fa-graduation-cap', label: 'MPT Mock Test', pro: true },
         { id: 'factbook', icon: 'fa-solid fa-lightbulb', label: 'Fact Book' },
-          { id: 'important_data', icon: 'fa-solid fa-box-archive', label: 'Important Data' },
     ];
     
     return (
         <div className="w-72 h-full bg-white dark:bg-surfaceDark border-r border-slate-200 dark:border-slate-800 flex flex-col transition-colors z-20 font-sans shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none">
-            <div className="px-6 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800/50">
+            <div className="px-6 pt-4 pb-2 border-b border-slate-100 dark:border-slate-800/50">
                   <div className="flex justify-center w-full mt-2 mb-1 cursor-pointer group transition-transform duration-300 hover:scale-105" onClick={() => setCurrentView('dashboard')}>
                     <div className="relative flex items-center pl-12">
                         <div className="absolute -top-6 left-0 w-20 h-20 -rotate-45 z-10 group-hover:-rotate-12 transition-transform duration-500">
@@ -294,12 +294,12 @@ const Sidebar = ({ currentView, setCurrentView, user, isPro, proExpiresAt, plan,
                 </div>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
                 {menuItems.map(item => (
                     <button
                         key={item.id}
                         onClick={() => setCurrentView(item.id)}
-                        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold transition-all relative overflow-hidden group ${currentView === item.id ? 'bg-primary text-white shadow-md shadow-primary/20 scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-800 dark:hover:text-white'}`}
+                        className={`w-full flex items-center gap-4 px-4 py-2.5 rounded-xl font-bold text-[15px] transition-all relative overflow-hidden group ${currentView === item.id ? 'bg-primary text-white shadow-md shadow-primary/20 scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-800 dark:hover:text-white'}`}
                     >
                         {currentView === item.id && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]"></div>}
                         <i className={`${item.icon} text-lg ${currentView === item.id ? 'text-white' : 'group-hover:scale-110 transition-transform'} w-6 text-center`}></i>
