@@ -2656,8 +2656,8 @@ setFiles(docFiles);
                             style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
                             onCopy={(e) => { e.preventDefault(); return false; }}
                         >
-                            {/* Overlay to prevent right clicks if image or pdf, although iframe does its own thing */}
-                            {fileType !== 'docx' && fileType !== 'xlsx' && (
+                            {/* Only overlay images to prevent right clicks, let PDF handle its own scrolling */}
+                            {fileType === 'image' && (
                                 <div className="absolute inset-0 z-10" onContextMenu={e => e.preventDefault()} />
                             )}
                             
@@ -2667,8 +2667,12 @@ setFiles(docFiles);
                                     <p className="font-bold animate-pulse">Loading Document...</p>
                                 </div>
                             ) : fileType === 'pdf' ? (
-                                <div style={{ height: 'calc(100vh - 140px)' }}>
-                                    <iframe src={fileDataUrl} className="w-full h-full border-0"></iframe>
+                                <div className="w-full h-[75vh] md:h-[85vh] relative overflow-hidden bg-slate-100 rounded-xl">
+                                    <iframe 
+                                        src={fileDataUrl} 
+                                        className="absolute w-full border-0"
+                                        style={{ top: '-60px', left: 0, height: 'calc(100% + 120px)' }}
+                                    ></iframe>
                                 </div>
                             ) : fileType === 'image' ? (
                                 <div className="flex justify-center bg-slate-100 p-4 rounded-xl">
