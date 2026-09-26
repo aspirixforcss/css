@@ -1177,21 +1177,16 @@ const SubjectWiseMCQs = ({ selectedSubjects }) => {
                 const subRes = await fetch(subUrl, { cache: 'no-store' });
                 const subData = await subRes.json();
                 
-                // Try to match subject name
-                const searchKeywords = subject.name.toLowerCase().split(' ').filter(w => w.length > 3);
-                if (searchKeywords.length === 0) searchKeywords.push(subject.name.toLowerCase());
-                
-                targetFile = subData.files?.find(f => {
-                    const fn = f.name.toLowerCase();
-                    if (fn.includes('[old')) return false;
-                    
-                    // For subjects like "International Relations Paper-I", require all parts to match roughly
-                    const allMatch = searchKeywords.every(kw => fn.includes(kw));
-                    if (allMatch) return true;
-                    
-                    // Fallback to partial match if exact multi-word match fails
-                    return searchKeywords.some(kw => fn.includes(kw));
-                });
+                // Try to match subject name directly by removing spaces and special chars
+                  const subjectNameClean = subject.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                  
+                  targetFile = subData.files?.find(f => {
+                      const fn = f.name.toLowerCase();
+                      if (fn.includes('[old')) return false;
+                      
+                      const cleanFn = fn.replace(/[^a-z0-9]/g, '');
+                      return cleanFn.includes(subjectNameClean);
+                  });
                 
                 if (targetFile) break;
             }
@@ -1251,26 +1246,27 @@ const SubjectWiseMCQs = ({ selectedSubjects }) => {
             let correctIdx = 0;
             let ansStr = String(q.answer).trim().toUpperCase();
             
-            if (ansStr.includes("OPTION A") || ansStr.includes("OPT A") || ansStr === "A" || ansStr === "1") {
-                correctIdx = 0;
-            } else if (ansStr.includes("OPTION B") || ansStr.includes("OPT B") || ansStr === "B" || ansStr === "2") {
-                correctIdx = 1;
-            } else if (ansStr.includes("OPTION C") || ansStr.includes("OPT C") || ansStr === "C" || ansStr === "3") {
-                correctIdx = 2;
-            } else if (ansStr.includes("OPTION D") || ansStr.includes("OPT D") || ansStr === "D" || ansStr === "4") {
-                correctIdx = 3;
-            } else {
-                // Remove invisible characters for strict matching
-                ansStr = ansStr.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/^OPTION\s*-?\s*/i, '').replace(/^OPT\s*-?\s*/i, '').trim();
-                if (['A','B','C','D'].includes(ansStr)) {
-                    correctIdx = ansStr.charCodeAt(0) - 65;
-                } else if (['1','2','3','4'].includes(ansStr)) {
-                    correctIdx = parseInt(ansStr) - 1;
+                            if (ansStr.includes("OPTION A") || ansStr.includes("OPT A") || ansStr === "A" || ansStr === "1") {
+                    correctIdx = 0;
+                } else if (ansStr.includes("OPTION B") || ansStr.includes("OPT B") || ansStr === "B" || ansStr === "2") {
+                    correctIdx = 1;
+                } else if (ansStr.includes("OPTION C") || ansStr.includes("OPT C") || ansStr === "C" || ansStr === "3") {
+                    correctIdx = 2;
+                } else if (ansStr.includes("OPTION D") || ansStr.includes("OPT D") || ansStr === "D" || ansStr === "4") {
+                    correctIdx = 3;
                 } else {
-                    const foundIdx = q.options.findIndex(opt => String(opt).trim().toLowerCase() === String(q.answer).trim().toLowerCase());
-                    if (foundIdx !== -1) correctIdx = foundIdx;
+                    // Remove invisible characters for strict matching
+                    ansStr = ansStr.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/^OPTION\s*-?\s*/i, '').replace(/^OPT\s*-?\s*/i, '').trim();
+                    if (['A','B','C','D'].includes(ansStr)) {
+                        correctIdx = ansStr.charCodeAt(0) - 65;
+                    } else if (['1','2','3','4'].includes(ansStr)) {
+                        correctIdx = parseInt(ansStr) - 1;
+                    } else {
+                        const cleanAns = String(q.answer).toLowerCase().replace(/[^a-z0-9]/g, '');
+                        const foundIdx = q.options.findIndex(opt => String(opt).toLowerCase().replace(/[^a-z0-9]/g, '') === cleanAns);
+                        if (foundIdx !== -1) correctIdx = foundIdx;
+                    }
                 }
-            }
             return { ...q, correctIdx };
         });
 
