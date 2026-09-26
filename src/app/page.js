@@ -2439,12 +2439,10 @@ const ImportantDataView = () => {
             setLoadingFiles(true);
             setFiles([]);
             try {
-                // 1. Get the subfolder matching activeTab
                 const rootUrl = `https://www.googleapis.com/drive/v3/files?q='${ROOT_FOLDER_ID}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}`;
                 const rootRes = await fetch(rootUrl);
                 const rootData = await rootRes.json();
                 
-                // Fuzzy match the folder name
                 const targetFolder = rootData.files?.find(f => 
                     f.mimeType === 'application/vnd.google-apps.folder' && 
                     f.name.toLowerCase().replace(/\\s+/g, '') === activeTab.toLowerCase().replace(/\\s+/g, '')
@@ -2455,12 +2453,10 @@ const ImportantDataView = () => {
                     return;
                 }
 
-                // 2. Fetch files inside that folder
                 const subUrl = `https://www.googleapis.com/drive/v3/files?q='${targetFolder.id}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}`;
                 const subRes = await fetch(subUrl);
                 const subData = await subRes.json();
                 
-                // Keep .docx files
                 const docFiles = (subData.files || []).filter(f => 
                     f.name.endsWith('.docx') || f.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                 );
@@ -2483,11 +2479,14 @@ const ImportantDataView = () => {
             const fileRes = await fetch(fileUrl);
             const arrayBuffer = await fileRes.arrayBuffer();
 
-            // Import mammoth dynamically to avoid Next.js build errors or large bundle size on initial load
             const mammoth = (await import('mammoth')).default;
             const result = await mammoth.convertToHtml({ arrayBuffer });
             
-            setEssayContent(result.value);
+            let html = result.value;
+            // Make "Case in point" appear small and secondary
+            html = html.replace(/(case in point[:\\-]?\\s*)/gi, '<span class="text-sm font-normal text-slate-500 italic">$1</span>');
+            
+            setEssayContent(html);
         } catch (err) {
             console.error("Error opening essay:", err);
             setEssayContent('<p class="text-red-500">Failed to load essay content.</p>');
@@ -2502,7 +2501,7 @@ const ImportantDataView = () => {
             <div className="p-8 pb-4 shrink-0">
                 <div className="flex flex-col gap-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white text-xl">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white text-xl">
                             <i className="fa-solid fa-box-archive"></i>
                         </div>
                         <div>
@@ -2518,8 +2517,8 @@ const ImportantDataView = () => {
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={`px-5 py-2.5 rounded-xl font-bold transition-all ${activeTab === tab 
-                                    ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20' 
-                                    : 'bg-white dark:bg-surfaceDark text-slate-600 dark:text-slate-400 border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-500/50 hover:text-indigo-500'}`}
+                                    ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' 
+                                    : 'bg-white dark:bg-surfaceDark text-slate-600 dark:text-slate-400 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500/50 hover:text-blue-500'}`}
                             >
                                 {tab}
                             </button>
@@ -2532,7 +2531,7 @@ const ImportantDataView = () => {
             <div className="flex-1 overflow-y-auto p-8 pt-4">
                 {loadingFiles ? (
                     <div className="flex justify-center items-center h-32">
-                        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                     </div>
                 ) : files.length === 0 ? (
                     <div className="text-center p-8 bg-white dark:bg-surfaceDark rounded-3xl border border-slate-200 dark:border-slate-700">
@@ -2548,7 +2547,7 @@ const ImportantDataView = () => {
                             <button 
                                 key={file.id} 
                                 onClick={() => openEssay(file)}
-                                className="bg-white dark:bg-surfaceDark p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-500 hover:shadow-lg transition-all text-left flex items-start gap-4 group"
+                                className="bg-white dark:bg-surfaceDark p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:shadow-lg transition-all text-left flex items-start gap-4 group"
                             >
                                 <div className="w-10 h-10 shrink-0 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
                                     <i className="fa-solid fa-file-word text-xl"></i>
@@ -2567,38 +2566,40 @@ const ImportantDataView = () => {
 
             {/* Reading Modal (App Only View - No Copy) */}
             {selectedEssay && (
-                <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[200] flex flex-col animate-fade-in select-none">
-                    <div className="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900">
+                <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[200] select-none flex flex-col">
+                    {/* Fixed Header */}
+                    <div className="shrink-0 p-4 border-b border-white/10 flex justify-between items-center bg-slate-900 relative z-10">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400">
                                 <i className="fa-solid fa-file-word"></i>
                             </div>
-                            <h3 className="font-bold text-lg text-white truncate max-w-md md:max-w-xl">
+                            <h3 className="font-bold text-lg text-white truncate max-w-[200px] sm:max-w-md md:max-w-xl">
                                 {selectedEssay.name.replace('.docx', '')}
                             </h3>
                         </div>
                         <button 
                             onClick={() => setSelectedEssay(null)} 
-                            className="text-slate-400 hover:text-white w-10 h-10 flex justify-center items-center rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                            className="text-slate-400 hover:text-white w-10 h-10 flex justify-center items-center rounded-xl bg-white/5 hover:bg-white/10 transition-colors shrink-0"
                         >
                             <i className="fa-solid fa-xmark text-xl"></i>
                         </button>
                     </div>
                     
-                    <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center">
+                    {/* Scrollable Document Area */}
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full relative">
                         <div 
-                            className="bg-white text-slate-800 w-full max-w-4xl rounded-2xl shadow-2xl p-8 md:p-12 min-h-full"
+                            className="bg-white text-slate-800 w-full max-w-4xl rounded-2xl shadow-2xl p-6 md:p-12 h-max my-4"
                             style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
                             onCopy={(e) => { e.preventDefault(); return false; }}
                         >
                             {loadingEssay ? (
-                                <div className="flex flex-col justify-center items-center h-full gap-4 opacity-50">
+                                <div className="flex flex-col justify-center items-center h-64 gap-4 opacity-50">
                                     <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                                     <p className="font-bold animate-pulse">Loading Document...</p>
                                 </div>
                             ) : (
                                 <div 
-                                    className="prose prose-slate max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-a:text-blue-600 select-none"
+                                    className="prose prose-slate max-w-none prose-p:leading-relaxed prose-headings:font-black prose-headings:text-slate-900 prose-h1:text-4xl prose-h2:text-2xl prose-h3:text-xl prose-a:text-blue-600 prose-strong:text-slate-900 select-none pb-12"
                                     dangerouslySetInnerHTML={{ __html: essayContent }}
                                 />
                             )}
