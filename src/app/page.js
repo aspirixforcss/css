@@ -278,6 +278,7 @@ const Sidebar = ({ currentView, setCurrentView, user, isPro, proExpiresAt, plan,
         { id: 'vocab', icon: 'fa-solid fa-spell-check', label: 'Vocab Flashcards' },
         { id: 'mptmock', icon: 'fa-solid fa-graduation-cap', label: 'MPT Mock Test', pro: true },
         { id: 'factbook', icon: 'fa-solid fa-lightbulb', label: 'Fact Book' },
+          { id: 'important_data', icon: 'fa-solid fa-box-archive', label: 'Important Data' },
     ];
     
     return (
@@ -2419,6 +2420,196 @@ const SupportModal = ({ isOpen, onClose }) => {
     );
 };
 
+
+const ImportantDataView = () => {
+    const [subTabs] = useState(['Expected Essays', 'Checked Essays', 'Current affairs Notes']);
+    const [activeTab, setActiveTab] = useState('Expected Essays');
+    const [files, setFiles] = useState([]);
+    const [loadingFiles, setLoadingFiles] = useState(false);
+    
+    const [selectedEssay, setSelectedEssay] = useState(null);
+    const [essayContent, setEssayContent] = useState('');
+    const [loadingEssay, setLoadingEssay] = useState(false);
+
+    const API_KEY = 'AIzaSyBRb_sUPTEQDnHi223Kwld4JHKM-5K9000';
+    const ROOT_FOLDER_ID = '1pnGhh6ZOEJp0yMNuedAR50-aEcJL5bjY';
+
+    useEffect(() => {
+        const fetchFiles = async () => {
+            setLoadingFiles(true);
+            setFiles([]);
+            try {
+                // 1. Get the subfolder matching activeTab
+                const rootUrl = `https://www.googleapis.com/drive/v3/files?q='${ROOT_FOLDER_ID}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}`;
+                const rootRes = await fetch(rootUrl);
+                const rootData = await rootRes.json();
+                
+                // Fuzzy match the folder name
+                const targetFolder = rootData.files?.find(f => 
+                    f.mimeType === 'application/vnd.google-apps.folder' && 
+                    f.name.toLowerCase().replace(/\\s+/g, '') === activeTab.toLowerCase().replace(/\\s+/g, '')
+                );
+
+                if (!targetFolder) {
+                    setLoadingFiles(false);
+                    return;
+                }
+
+                // 2. Fetch files inside that folder
+                const subUrl = `https://www.googleapis.com/drive/v3/files?q='${targetFolder.id}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}`;
+                const subRes = await fetch(subUrl);
+                const subData = await subRes.json();
+                
+                // Keep .docx files
+                const docFiles = (subData.files || []).filter(f => 
+                    f.name.endsWith('.docx') || f.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                );
+                
+                setFiles(docFiles);
+            } catch (err) {
+                console.error("Error fetching essays:", err);
+            }
+            setLoadingFiles(false);
+        };
+        fetchFiles();
+    }, [activeTab]);
+
+    const openEssay = async (file) => {
+        setSelectedEssay(file);
+        setLoadingEssay(true);
+        setEssayContent('');
+        try {
+            const fileUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=${API_KEY}`;
+            const fileRes = await fetch(fileUrl);
+            const arrayBuffer = await fileRes.arrayBuffer();
+
+            // Import mammoth dynamically to avoid Next.js build errors or large bundle size on initial load
+            const mammoth = (await import('mammoth')).default;
+            const result = await mammoth.convertToHtml({ arrayBuffer });
+            
+            setEssayContent(result.value);
+        } catch (err) {
+            console.error("Error opening essay:", err);
+            setEssayContent('<p class="text-red-500">Failed to load essay content.</p>');
+        }
+        setLoadingEssay(false);
+    };
+
+    return (
+        <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900 overflow-hidden relative">
+            
+            {/* Header */}
+            <div className="p-8 pb-4 shrink-0">
+                <div className="flex flex-col gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white text-xl">
+                            <i className="fa-solid fa-box-archive"></i>
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">Important Data</h2>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium">Access exclusive notes and expected essays.</p>
+                        </div>
+                    </div>
+                    
+                    {/* Sub Tabs */}
+                    <div className="flex flex-wrap gap-2">
+                        {subTabs.map(tab => (
+                            <button 
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`px-5 py-2.5 rounded-xl font-bold transition-all ${activeTab === tab 
+                                    ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20' 
+                                    : 'bg-white dark:bg-surfaceDark text-slate-600 dark:text-slate-400 border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-500/50 hover:text-indigo-500'}`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* List Content */}
+            <div className="flex-1 overflow-y-auto p-8 pt-4">
+                {loadingFiles ? (
+                    <div className="flex justify-center items-center h-32">
+                        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                ) : files.length === 0 ? (
+                    <div className="text-center p-8 bg-white dark:bg-surfaceDark rounded-3xl border border-slate-200 dark:border-slate-700">
+                        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400 text-2xl">
+                            <i className="fa-solid fa-folder-open"></i>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">No files found</h3>
+                        <p className="text-slate-500 dark:text-slate-400">There are no .docx files in this folder yet.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {files.map(file => (
+                            <button 
+                                key={file.id} 
+                                onClick={() => openEssay(file)}
+                                className="bg-white dark:bg-surfaceDark p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-500 hover:shadow-lg transition-all text-left flex items-start gap-4 group"
+                            >
+                                <div className="w-10 h-10 shrink-0 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                                    <i className="fa-solid fa-file-word text-xl"></i>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-slate-800 dark:text-white truncate" title={file.name}>
+                                        {file.name.replace('.docx', '')}
+                                    </h4>
+                                    <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-bold">Document</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Reading Modal (App Only View - No Copy) */}
+            {selectedEssay && (
+                <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[200] flex flex-col animate-fade-in select-none">
+                    <div className="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400">
+                                <i className="fa-solid fa-file-word"></i>
+                            </div>
+                            <h3 className="font-bold text-lg text-white truncate max-w-md md:max-w-xl">
+                                {selectedEssay.name.replace('.docx', '')}
+                            </h3>
+                        </div>
+                        <button 
+                            onClick={() => setSelectedEssay(null)} 
+                            className="text-slate-400 hover:text-white w-10 h-10 flex justify-center items-center rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                        >
+                            <i className="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center">
+                        <div 
+                            className="bg-white text-slate-800 w-full max-w-4xl rounded-2xl shadow-2xl p-8 md:p-12 min-h-full"
+                            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                            onCopy={(e) => { e.preventDefault(); return false; }}
+                        >
+                            {loadingEssay ? (
+                                <div className="flex flex-col justify-center items-center h-full gap-4 opacity-50">
+                                    <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                    <p className="font-bold animate-pulse">Loading Document...</p>
+                                </div>
+                            ) : (
+                                <div 
+                                    className="prose prose-slate max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-a:text-blue-600 select-none"
+                                    dangerouslySetInnerHTML={{ __html: essayContent }}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const App = () => {
     const [user, setUser] = useState(null);
     const [loadingAuth, setLoadingAuth] = useState(true);
@@ -2751,6 +2942,7 @@ if (currentView === 'upgrade') return <PremiumUpgradeView onUpgrade={handleUpgra
                             case 'factbook': return <FactBook facts={facts} setFacts={setFacts} />;
                             case 'currentaffairs': return <CurrentAffairsView />;
                             case 'mcqs': return <SubjectWiseMCQs selectedSubjects={selectedSubjects} />;
+                              case 'important_data': return <ImportantDataView />;
                               case 'mptmock': return <MPTMockTest isPro={isPro} />;
                             case 'vocab': return <VocabFlashcards isPro={isPro} />;
                               case 'about': return <AboutView />;
