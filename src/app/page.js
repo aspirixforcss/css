@@ -2422,13 +2422,15 @@ const SupportModal = ({ isOpen, onClose }) => {
 
 
 const ImportantDataView = () => {
-    const [subTabs] = useState(['Expected Essays', 'Checked Essays', 'Current affairs Notes']);
+    const [subTabs] = useState(['Expected Essays', 'Checked Essays', 'Current affairs Notes', 'Solved Precis']);
     const [activeTab, setActiveTab] = useState('Expected Essays');
     const [files, setFiles] = useState([]);
     const [loadingFiles, setLoadingFiles] = useState(false);
     
     const [selectedEssay, setSelectedEssay] = useState(null);
     const [essayContent, setEssayContent] = useState('');
+    const [fileType, setFileType] = useState('docx'); // 'docx', 'pdf', 'image', 'xlsx'
+    const [fileDataUrl, setFileDataUrl] = useState(null);
     const [loadingEssay, setLoadingEssay] = useState(false);
 
     const API_KEY = 'AIzaSyBRb_sUPTEQDnHi223Kwld4JHKM-5K9000';
@@ -2457,11 +2459,18 @@ const ImportantDataView = () => {
                 const subRes = await fetch(subUrl);
                 const subData = await subRes.json();
                 
-                const docFiles = (subData.files || []).filter(f => 
-                    f.name.endsWith('.docx') || f.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                );
                 
-                setFiles(docFiles);
+                const allowedMimes = [
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/pdf',
+                    'image/jpeg', 'image/png', 'image/gif', 'image/webp'
+                ];
+                const docFiles = (subData.files || []).filter(f => 
+                    f.name.endsWith('.docx') || f.name.endsWith('.xlsx') || f.name.endsWith('.pdf') || 
+                    f.name.match(/\.(jpeg|jpg|gif|png|webp)$/i) || allowedMimes.includes(f.mimeType)
+                );
+setFiles(docFiles);
             } catch (err) {
                 console.error("Error fetching essays:", err);
             }
@@ -2470,47 +2479,70 @@ const ImportantDataView = () => {
         fetchFiles();
     }, [activeTab]);
 
+    
     const openEssay = async (file) => {
         setSelectedEssay(file);
         setLoadingEssay(true);
         setEssayContent('');
+        setFileDataUrl(null);
+        
+        const isPdf = file.mimeType === 'application/pdf' || file.name.endsWith('.pdf');
+        const isExcel = file.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.name.endsWith('.xlsx');
+        const isImage = file.mimeType.startsWith('image/') || file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i);
+
         try {
-            const fileUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=${API_KEY}`;
-            const fileRes = await fetch(fileUrl);
-            const arrayBuffer = await fileRes.arrayBuffer();
-
-            const mammoth = (await import('mammoth')).default;
-            const result = await mammoth.convertToHtml({ arrayBuffer });
-            
-            let html = result.value;
-            // Format essay outline elements according to requested typography
-            // 1. Main Headers (e.g., "1. Introduction", "Outline", "Essay")
-            html = html.replace(/<p><strong>(Outline|Essay|Introduction|Conclusion|\d+\.\s*.*?)<\/strong><\/p>/gi, (match, text) => {
-                return `<p class="text-[22px] font-black text-blue-700 dark:text-blue-400 mt-10 mb-4 ml-0">${text}</p>`;
-            });
-
-            // 2. Sub Headers (List items)
-            html = html.replace(/<ul>\s*<li>\s*<strong>([\s\S]*?)<\/strong>\s*<\/li>\s*<\/ul>/gi, (match, text) => {
-                return `<ul class="list-disc ml-6 mt-4 mb-2"><li class="text-[17px] font-bold text-slate-800 dark:text-slate-200">${text}</li></ul>`;
-            });
-
-            // 3. Case in point (various mammoth formats)
-            const caseInPointClass = "text-[15px] font-medium text-slate-500 dark:text-slate-400 italic ml-12 mt-2 mb-6 border-l-2 border-slate-300 dark:border-slate-600 pl-4";
-            
-            html = html.replace(/<p><strong>Case in point[:\-]?\s*<\/strong>([\s\S]*?)<\/p>/gi, (match, text) => {
-                return `<p class="${caseInPointClass}">Case in Point: ${text}</p>`;
-            });
-            html = html.replace(/<p><strong>Case in point[:\-]?\s*([\s\S]*?)<\/strong><\/p>/gi, (match, text) => {
-                return `<p class="${caseInPointClass}">Case in Point: ${text}</p>`;
-            });
-            html = html.replace(/<p>\s*Case in point[:\-]?\s*([\s\S]*?)<\/p>/gi, (match, text) => {
-                return `<p class="${caseInPointClass}">Case in Point: ${text}</p>`;
-            });
-
-            setEssayContent(html);
+            if (isPdf) {
+                setFileType('pdf');
+                setFileDataUrl(`https://drive.google.com/file/d/${file.id}/preview?rm=minimal`);
+            } else if (isImage) {
+                setFileType('image');
+                const fileUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=${API_KEY}`;
+                const fileRes = await fetch(fileUrl);
+                const blob = await fileRes.blob();
+                setFileDataUrl(URL.createObjectURL(blob));
+            } else if (isExcel) {
+                setFileType('xlsx');
+                const fileUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=${API_KEY}`;
+                const fileRes = await fetch(fileUrl);
+                const arrayBuffer = await fileRes.arrayBuffer();
+                const XLSX = await import('xlsx');
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const html = XLSX.utils.sheet_to_html(firstSheet);
+                setEssayContent(html);
+            } else {
+                // Default to DOCX
+                setFileType('docx');
+                const fileUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&key=${API_KEY}`;
+                const fileRes = await fetch(fileUrl);
+                const arrayBuffer = await fileRes.arrayBuffer();
+    
+                const mammoth = (await import('mammoth')).default;
+                const result = await mammoth.convertToHtml({ arrayBuffer });
+                
+                let html = result.value;
+                // Format essay outline elements according to requested typography
+                html = html.replace(/<p><strong>(Outline|Essay|Introduction|Conclusion|\d+\.\s*.*?)<\/strong><\/p>/gi, (match, text) => {
+                    return `<p class="text-[22px] font-black text-blue-700 dark:text-blue-400 mt-10 mb-4 ml-0">${text}</p>`;
+                });
+                html = html.replace(/<ul>\s*<li>\s*<strong>([\s\S]*?)<\/strong>\s*<\/li>\s*<\/ul>/gi, (match, text) => {
+                    return `<ul class="list-disc ml-6 mt-4 mb-2"><li class="text-[17px] font-bold text-slate-800 dark:text-slate-200">${text}</li></ul>`;
+                });
+                const caseInPointClass = "text-[15px] font-medium text-slate-500 dark:text-slate-400 italic ml-12 mt-2 mb-6 border-l-2 border-slate-300 dark:border-slate-600 pl-4";
+                html = html.replace(/<p><strong>Case in point[:\-]?\s*<\/strong>([\s\S]*?)<\/p>/gi, (match, text) => {
+                    return `<p class="${caseInPointClass}">Case in Point: ${text}</p>`;
+                });
+                html = html.replace(/<p><strong>Case in point[:\-]?\s*([\s\S]*?)<\/strong><\/p>/gi, (match, text) => {
+                    return `<p class="${caseInPointClass}">Case in Point: ${text}</p>`;
+                });
+                html = html.replace(/<p>\s*Case in point[:\-]?\s*([\s\S]*?)<\/p>/gi, (match, text) => {
+                    return `<p class="${caseInPointClass}">Case in Point: ${text}</p>`;
+                });
+                setEssayContent(html);
+            }
         } catch (err) {
-            console.error("Error opening essay:", err);
-            setEssayContent('<p class="text-red-500">Failed to load essay content.</p>');
+            console.error("Error fetching file:", err);
+            setEssayContent('<p class="text-red-500">Failed to load content.</p>');
         }
         setLoadingEssay(false);
     };
@@ -2570,14 +2602,19 @@ const ImportantDataView = () => {
                                 onClick={() => openEssay(file)}
                                 className="bg-white dark:bg-surfaceDark p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:shadow-lg transition-all text-left flex items-start gap-4 group"
                             >
+                                
                                 <div className="w-10 h-10 shrink-0 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-                                    <i className="fa-solid fa-file-word text-xl"></i>
+                                    {file.name.endsWith('.pdf') ? <i className="fa-solid fa-file-pdf text-xl text-red-500"></i> :
+                                     file.name.endsWith('.xlsx') ? <i className="fa-solid fa-file-excel text-xl text-green-500"></i> :
+                                     file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? <i className="fa-solid fa-image text-xl text-purple-500"></i> :
+                                     <i className="fa-solid fa-file-word text-xl"></i>}
                                 </div>
+
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-bold text-slate-800 dark:text-white truncate" title={file.name}>
                                         {file.name.replace('.docx', '')}
                                     </h4>
-                                    <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-bold">Document</p>
+                                    <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-bold">{file.name.endsWith('.pdf') ? 'PDF' : file.name.endsWith('.xlsx') ? 'Excel' : file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? 'Image' : 'Document'}</p>
                                 </div>
                             </button>
                         ))}
@@ -2591,9 +2628,14 @@ const ImportantDataView = () => {
                     {/* Fixed Header */}
                     <div className="shrink-0 p-4 border-b border-white/10 flex justify-between items-center bg-slate-900 relative z-10">
                         <div className="flex items-center gap-3">
+                            
                             <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400">
-                                <i className="fa-solid fa-file-word"></i>
+                                {selectedEssay.name.endsWith('.pdf') ? <i className="fa-solid fa-file-pdf text-red-500"></i> :
+                                 selectedEssay.name.endsWith('.xlsx') ? <i className="fa-solid fa-file-excel text-green-500"></i> :
+                                 selectedEssay.name.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? <i className="fa-solid fa-image text-purple-500"></i> :
+                                 <i className="fa-solid fa-file-word"></i>}
                             </div>
+
                             <h3 className="font-bold text-lg text-white truncate max-w-[200px] sm:max-w-md md:max-w-xl">
                                 {selectedEssay.name.replace('.docx', '')}
                             </h3>
@@ -2608,16 +2650,35 @@ const ImportantDataView = () => {
                     
                     {/* Scrollable Document Area */}
                     <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center w-full relative">
+                        
                         <div 
-                            className="bg-white text-slate-800 w-full max-w-4xl rounded-2xl shadow-2xl p-6 md:p-12 h-max my-4"
+                            className={`${fileType !== 'pdf' ? 'bg-white text-slate-800 rounded-2xl shadow-2xl p-6 md:p-12' : 'rounded-2xl overflow-hidden'} w-full max-w-4xl h-max my-4 relative`}
                             style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
                             onCopy={(e) => { e.preventDefault(); return false; }}
                         >
+                            {/* Overlay to prevent right clicks if image or pdf, although iframe does its own thing */}
+                            {fileType !== 'docx' && fileType !== 'xlsx' && (
+                                <div className="absolute inset-0 z-10" onContextMenu={e => e.preventDefault()} />
+                            )}
+                            
                             {loadingEssay ? (
-                                <div className="flex flex-col justify-center items-center h-64 gap-4 opacity-50">
+                                <div className="flex flex-col justify-center items-center h-64 gap-4 opacity-50 bg-white">
                                     <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                                     <p className="font-bold animate-pulse">Loading Document...</p>
                                 </div>
+                            ) : fileType === 'pdf' ? (
+                                <div style={{ height: 'calc(100vh - 140px)' }}>
+                                    <iframe src={fileDataUrl} className="w-full h-full border-0"></iframe>
+                                </div>
+                            ) : fileType === 'image' ? (
+                                <div className="flex justify-center bg-slate-100 p-4 rounded-xl">
+                                    <img src={fileDataUrl} alt="Document View" className="max-w-full h-auto rounded-lg shadow-sm" style={{ pointerEvents: 'none' }} />
+                                </div>
+                            ) : fileType === 'xlsx' ? (
+                                <div 
+                                    className="prose prose-slate max-w-none w-full overflow-x-auto select-none [&_table]:w-full [&_table]:border-collapse [&_th]:border [&_th]:border-slate-300 [&_th]:p-2 [&_td]:border [&_td]:border-slate-300 [&_td]:p-2"
+                                    dangerouslySetInnerHTML={{ __html: essayContent }}
+                                />
                             ) : (
                                 <div 
                                     className="prose prose-slate max-w-none prose-p:leading-relaxed prose-headings:font-black prose-headings:text-slate-900 prose-h1:text-4xl prose-h2:text-2xl prose-h3:text-xl prose-a:text-blue-600 prose-strong:text-slate-900 select-none pb-12"
@@ -2625,6 +2686,7 @@ const ImportantDataView = () => {
                                 />
                             )}
                         </div>
+
                     </div>
                 </div>
             )}
