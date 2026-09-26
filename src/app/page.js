@@ -1164,7 +1164,7 @@ const SubjectWiseMCQs = ({ selectedSubjects }) => {
             
             // 1. List contents of CSS mix data folder
             const rootUrl = `https://www.googleapis.com/drive/v3/files?q='${CSS_MIX_DATA_FOLDER_ID}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}`;
-            const rootRes = await fetch(rootUrl);
+            const rootRes = await fetch(rootUrl, { cache: 'no-store' });
             const rootData = await rootRes.json();
             
             if (rootData.error) throw new Error("Could not access CSS mix data folder. Check if the FOLDER_ID is correct and it is shared as 'Anyone with the link can view'.");
@@ -1174,7 +1174,7 @@ const SubjectWiseMCQs = ({ selectedSubjects }) => {
             let targetFile = null;
             for (let folder of foldersToSearch) {
                 const subUrl = `https://www.googleapis.com/drive/v3/files?q='${folder.id}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}`;
-                const subRes = await fetch(subUrl);
+                const subRes = await fetch(subUrl, { cache: 'no-store' });
                 const subData = await subRes.json();
                 
                 // Try to match subject name
@@ -2442,7 +2442,7 @@ const ImportantDataView = () => {
             setFiles([]);
             try {
                 const rootUrl = `https://www.googleapis.com/drive/v3/files?q='${ROOT_FOLDER_ID}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}`;
-                const rootRes = await fetch(rootUrl);
+                const rootRes = await fetch(rootUrl, { cache: 'no-store' });
                 const rootData = await rootRes.json();
                 
                 const targetFolder = rootData.files?.find(f => 
@@ -2456,7 +2456,7 @@ const ImportantDataView = () => {
                 }
 
                 const subUrl = `https://www.googleapis.com/drive/v3/files?q='${targetFolder.id}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}`;
-                const subRes = await fetch(subUrl);
+                const subRes = await fetch(subUrl, { cache: 'no-store' });
                 const subData = await subRes.json();
                 
                 
@@ -2464,7 +2464,10 @@ const ImportantDataView = () => {
                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                     'application/pdf',
-                    'image/jpeg', 'image/png', 'image/gif', 'image/webp'
+                    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                    'application/vnd.google-apps.document',
+                    'application/vnd.google-apps.spreadsheet',
+                    'application/vnd.google-apps.presentation'
                 ];
                 const docFiles = (subData.files || []).filter(f => 
                     f.name.endsWith('.docx') || f.name.endsWith('.xlsx') || f.name.endsWith('.pdf') || 
@@ -2486,7 +2489,7 @@ setFiles(docFiles);
         setEssayContent('');
         setFileDataUrl(null);
         
-        const isPdf = file.mimeType === 'application/pdf' || file.name.endsWith('.pdf');
+        const isPdf = file.mimeType === 'application/pdf' || file.name.endsWith('.pdf') || file.mimeType.startsWith('application/vnd.google-apps.');
         const isExcel = file.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.name.endsWith('.xlsx');
         const isImage = file.mimeType.startsWith('image/') || file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i);
 
@@ -2604,17 +2607,18 @@ setFiles(docFiles);
                             >
                                 
                                 <div className="w-10 h-10 shrink-0 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
-                                    {file.name.endsWith('.pdf') ? <i className="fa-solid fa-file-pdf text-xl text-red-500"></i> :
-                                     file.name.endsWith('.xlsx') ? <i className="fa-solid fa-file-excel text-xl text-green-500"></i> :
-                                     file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? <i className="fa-solid fa-image text-xl text-purple-500"></i> :
-                                     <i className="fa-solid fa-file-word text-xl"></i>}
+                                    {(file.name.endsWith('.pdf') || file.mimeType === 'application/pdf') ? <i className="fa-solid fa-file-pdf text-xl text-red-500"></i> :
+                                     (file.name.endsWith('.xlsx') || file.mimeType === 'application/vnd.google-apps.spreadsheet') ? <i className="fa-solid fa-file-excel text-xl text-green-500"></i> :
+                                     file.mimeType === 'application/vnd.google-apps.presentation' ? <i className="fa-solid fa-file-powerpoint text-xl text-orange-500"></i> :
+                                     (file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i) || file.mimeType?.startsWith('image/')) ? <i className="fa-solid fa-image text-xl text-purple-500"></i> :
+                                     <i className="fa-solid fa-file-word text-xl text-blue-500"></i>}
                                 </div>
 
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-bold text-slate-800 dark:text-white truncate" title={file.name}>
                                         {file.name.replace('.docx', '')}
                                     </h4>
-                                    <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-bold">{file.name.endsWith('.pdf') ? 'PDF' : file.name.endsWith('.xlsx') ? 'Excel' : file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? 'Image' : 'Document'}</p>
+                                    <p className="text-xs text-slate-400 mt-1 uppercase tracking-wider font-bold">{(file.name.endsWith('.pdf') || file.mimeType === 'application/pdf') ? 'PDF' : (file.name.endsWith('.xlsx') || file.mimeType === 'application/vnd.google-apps.spreadsheet') ? 'Excel' : file.mimeType === 'application/vnd.google-apps.presentation' ? 'Presentation' : (file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i) || file.mimeType?.startsWith('image/')) ? 'Image' : 'Document'}</p>
                                 </div>
                             </button>
                         ))}
@@ -2630,10 +2634,11 @@ setFiles(docFiles);
                         <div className="flex items-center gap-3">
                             
                             <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center text-blue-400">
-                                {selectedEssay.name.endsWith('.pdf') ? <i className="fa-solid fa-file-pdf text-red-500"></i> :
-                                 selectedEssay.name.endsWith('.xlsx') ? <i className="fa-solid fa-file-excel text-green-500"></i> :
-                                 selectedEssay.name.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? <i className="fa-solid fa-image text-purple-500"></i> :
-                                 <i className="fa-solid fa-file-word"></i>}
+                                {(selectedEssay.name.endsWith('.pdf') || selectedEssay.mimeType === 'application/pdf') ? <i className="fa-solid fa-file-pdf text-red-500"></i> :
+                                 (selectedEssay.name.endsWith('.xlsx') || selectedEssay.mimeType === 'application/vnd.google-apps.spreadsheet') ? <i className="fa-solid fa-file-excel text-green-500"></i> :
+                                 selectedEssay.mimeType === 'application/vnd.google-apps.presentation' ? <i className="fa-solid fa-file-powerpoint text-orange-500"></i> :
+                                 (selectedEssay.name.match(/\.(jpeg|jpg|gif|png|webp)$/i) || selectedEssay.mimeType?.startsWith('image/')) ? <i className="fa-solid fa-image text-purple-500"></i> :
+                                 <i className="fa-solid fa-file-word text-blue-500"></i>}
                             </div>
 
                             <h3 className="font-bold text-lg text-white truncate max-w-[200px] sm:max-w-md md:max-w-xl">
