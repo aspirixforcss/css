@@ -2382,63 +2382,37 @@ const SettingsModal = ({ isOpen, onClose, onChangeSubjects, onSignOut, isPro, pl
 
 
 const SupportModal = ({ isOpen, onClose }) => {
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-
     if (!isOpen) return null;
-
-    const handleSend = () => {
-        if (!title.trim() || !description.trim()) {
-            alert("Please provide both a title and a description.");
-            return;
-        }
-        const mailtoLink = `mailto:myproducts505@gmail.com?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(description)}`;
-        window.location.href = mailtoLink;
-        onClose();
-        setTitle('');
-        setDescription('');
-    };
 
     return (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] flex items-center justify-center p-4 animate-fade-in">
-            <div className="bg-white dark:bg-surfaceDark w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="bg-white dark:bg-surfaceDark w-full max-w-sm rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden text-center relative">
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
                     <h3 className="font-bold text-xl text-slate-800 dark:text-white flex items-center gap-2">
-                        <i className="fa-solid fa-headset text-blue-500"></i> Support / Report Bug
+                        <i className="fa-solid fa-headset text-blue-500"></i> Contact Support
                     </h3>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 w-8 h-8 flex justify-center items-center rounded-full bg-slate-100 dark:bg-slate-800">
                         <i className="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
-                <div className="p-6 space-y-4">
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Subject / Title</label>
-                        <input 
-                            type="text" 
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Briefly describe the issue..."
-                            className="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-500 outline-none transition-colors text-slate-800 dark:text-white"
-                        />
+                <div className="p-8 space-y-4">
+                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i className="fa-solid fa-envelope text-3xl text-blue-500"></i>
                     </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Description</label>
-                        <textarea 
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Please provide details about your request or the bug you encountered..."
-                            className="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-500 outline-none transition-colors text-slate-800 dark:text-white min-h-[120px] resize-y"
-                        ></textarea>
-                    </div>
-                    <button 
-                        onClick={handleSend}
-                        className="w-full py-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold transition-colors flex justify-center items-center gap-2"
-                    >
-                        <i className="fa-solid fa-paper-plane"></i> Send via Email App
-                    </button>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 text-center mt-2">
-                        This will open your default email application to securely send the message to myproducts505@gmail.com
+                    <h4 className="font-bold text-lg text-slate-800 dark:text-white">Need Help or Found a Bug?</h4>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                        Please send us an email detailing your issue or request at the address below:
                     </p>
+                    <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 font-bold text-blue-500 select-all tracking-wide">
+                        myproducts505@gmail.com
+                    </div>
+                    <a 
+                        href="mailto:myproducts505@gmail.com?subject=Support Request - CSS Prep App"
+                        onClick={onClose}
+                        className="w-full mt-4 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold transition-colors flex justify-center items-center gap-2 inline-flex"
+                    >
+                        <i className="fa-solid fa-paper-plane"></i> Open Email App
+                    </a>
                 </div>
             </div>
         </div>
